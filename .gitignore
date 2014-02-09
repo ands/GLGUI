@@ -1,0 +1,9 @@
+*~
+*.suo
+*.userprefs
+*.exe
+*.pdb
+*.mdb
+*.manifest
+GLGUI.dll
+obj
