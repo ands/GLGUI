@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D0281455-4FAF-4AF6-ABE4-8F9E7A25828D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>GLGUI</RootNamespace>
+    <AssemblyName>GLGUI</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="OpenTK">
+      <HintPath>..\bin\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="GLOptions.cs" />
+    <Compile Include="GLGroupLayout.cs" />
+    <Compile Include="GLViewport.cs" />
+    <Compile Include="GLFont\GLFontBuilder.cs" />
+    <Compile Include="GLFont\GLFontBuilderConfiguration.cs" />
+    <Compile Include="GLFont\GLFontKerningCalculator.cs" />
+    <Compile Include="GLFont\GLFontBitmap.cs" />
+    <Compile Include="GLFont\GLFont.cs" />
+    <Compile Include="GLFont\GLFontData.cs" />
+    <Compile Include="GLFont\GLFontGlyph.cs" />
+    <Compile Include="GLFont\GLFontRenderOptions.cs" />
+    <Compile Include="GLFont\GLFontVertexBuffer.cs" />
+    <Compile Include="GLFont\GLFontTextNodeList.cs" />
+    <Compile Include="GLFont\GLFontTexturePage.cs" />
+    <Compile Include="GLForm.cs" />
+    <Compile Include="GLControl.cs" />
+    <Compile Include="GLGui.cs" />
+    <Compile Include="GLDraw.cs" />
+    <Compile Include="GLButton.cs" />
+    <Compile Include="GLSkin.cs" />
+    <Compile Include="GLLabel.cs" />
+    <Compile Include="GLTextBox.cs" />
+    <Compile Include="GLCheckBox.cs" />
+    <Compile Include="GLFlowLayout.cs" />
+    <Compile Include="GLScrollableControl.cs" />
+    <Compile Include="GLSlider.cs" />
+    <Compile Include="GLSplitLayout.cs" />
+    <Compile Include="GLLinkLabel.cs" />
+    <Compile Include="Advanced\DataControl.cs" />
+    <Compile Include="GLContextMenu.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Advanced\" />
+  </ItemGroup>
+</Project>
