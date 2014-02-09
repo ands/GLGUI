@@ -1,4 +1,5 @@
 *~
+.fuse_hidden*
 *.suo
 *.userprefs
 *.exe
