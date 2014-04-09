@@ -1,9 +1,9 @@
 using System;
 using System.Drawing;
-using System.Windows.Forms;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
-using GLGUI;
+
+#if REFERENCE_WINDOWS_FORMS
+using Clipboard = System.Windows.Forms.Clipboard;
+#endif
 
 namespace GLGUI
 {
@@ -29,7 +29,7 @@ namespace GLGUI
 			skinDisabled = Gui.Skin.LabelDisabled;
 
 			outer = new Rectangle(0, 0, 0, 0);
-			sizeMin = new Size(1, 1);
+			sizeMin = new Size(1, (int)skinEnabled.Font.LineSpacing + skinEnabled.Padding.Vertical);
 			sizeMax = new Size(int.MaxValue, int.MaxValue);
 
 			ContextMenu = new GLContextMenu(gui);
@@ -54,11 +54,10 @@ namespace GLGUI
 			Inner = new Rectangle(skin.Padding.Left, skin.Padding.Top, outer.Width - skin.Padding.Horizontal, outer.Height - skin.Padding.Vertical);
 		}
 
-        private void OnRender(Rectangle scissorRect, double timeDelta)
+        private void OnRender(double timeDelta)
 		{
-			GLDraw.FilledRectangle(outer.Size, skin.BackgroundColor);
-			Scissor(scissorRect, Inner);
-            skin.Font.Print(textProcessed, new Vector2(Inner.Left, Inner.Top), skin.Color);
+            GLDraw.Fill(ref skin.BackgroundColor);
+            GLDraw.Text(textProcessed, Inner, ref skin.Color);
 		}
 	}
 }

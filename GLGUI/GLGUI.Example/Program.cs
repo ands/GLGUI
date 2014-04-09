@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace GLGUI.Example
 {
@@ -8,11 +9,11 @@ namespace GLGUI.Example
         [STAThread]
 		public static int Main(string[] args)
 		{
-            System.Windows.Forms.Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-            System.Windows.Forms.Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(OnGuiUnhandedException);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += new ThreadExceptionEventHandler(OnGuiUnhandedException);
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
-			Application.Run(new MainForm());
+			new MainForm().Run();
 			return 0;
 		}
 

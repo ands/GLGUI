@@ -1,44 +1,16 @@
 using System;
-using System.Linq;
 using System.Drawing;
-using System.Collections.Generic;
-using System.Windows.Forms;
-using OpenTK.Graphics.OpenGL;
+using System.Linq;
+using OpenTK.Input;
 
 namespace GLGUI
 {
-    public class GLScrolledControl : GLControl
-    {
-        public Size TotalSize;
-
-        public GLScrolledControl(GLGui gui) : base(gui)
-		{
-            AutoSize = true;
-        }
-
-        protected override void UpdateLayout()
-        {
-            outer.Width = Math.Min(Math.Max(outer.Width, sizeMin.Width), sizeMax.Width);
-            outer.Height = Math.Min(Math.Max(outer.Height, sizeMin.Height), sizeMax.Height);
-            Inner = new Rectangle(0, 0, outer.Width, outer.Height);
-
-            TotalSize = new Size(0, 0);
-            if (Controls.Count() > 0)
-            {
-                TotalSize.Width = Controls.Max(c => c.Outer.Right);
-                TotalSize.Height = Controls.Max(c => c.Outer.Bottom);
-            }
-
-            if (Parent != null && !Parent.AutoSize) // avoid doubled calls if autosize is true
-                Parent.Invalidate();
-        }
-    }
-
 	public class GLScrollableControl : GLControl
 	{
         public GLSlider Horizontal { get { return horizontal; } }
         public GLSlider Vertical { get { return vertical; } }
         public GLSkin.GLScrollableControlSkin Skin { get { return skin; } set { skin = value; Invalidate(); } }
+		public override GLContextMenu ContextMenu { get { return base.ContextMenu; } set { base.ContextMenu = value; content.ContextMenu = value; } }
 
         private GLSkin.GLScrollableControlSkin skin;
 		private Point scrollPosition;
@@ -104,8 +76,8 @@ namespace GLGUI
                 scrollPosition = new Point((int)(horizontal.Value * scrollFreedom.Width), (int)(vertical.Value * scrollFreedom.Height));
 				horizontal.Outer = new Rectangle(0, Inner.Height - horizontal.Height, Inner.Width - (vertical.Enabled ? vertical.Width : 0), horizontal.Height);
 				vertical.Outer = new Rectangle(Inner.Width - vertical.Width, 0, vertical.Width, Inner.Height - (horizontal.Enabled ? horizontal.Height : 0));
-                horizontal.MouseWheelStep = 0.5f / scrollFreedom.Width;
-                vertical.MouseWheelStep = 0.5f / scrollFreedom.Height;
+				horizontal.MouseWheelStep = 4.0f / scrollFreedom.Width;
+				vertical.MouseWheelStep = 4.0f / scrollFreedom.Height;
 
                 content.Outer = new Rectangle(-scrollPosition.X, -scrollPosition.Y,
 					Inner.Width - (vertical.Enabled ? vertical.Width : 0) + scrollPosition.X,
@@ -113,10 +85,10 @@ namespace GLGUI
             }
 		}
 
-        private void OnRender(Rectangle scissorRect, double timeDelta)
+        private void OnRender(double timeDelta)
         {
-            GLDraw.FilledRectangle(outer.Size, skin.BorderColor);
-            GLDraw.FilledRectangle(Inner, skin.BackgroundColor);
+            GLDraw.Fill(ref skin.BorderColor);
+            GLDraw.FillRect(Inner, ref skin.BackgroundColor);
         }
 
         public override T Add<T>(T control)
@@ -129,13 +101,12 @@ namespace GLGUI
             content.Remove(control);
         }
 
-        private void OnMouseWheel(object sender, MouseEventArgs e)
+		private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (vertical.Enabled)
-                vertical.DoMouseWheel(e);
+				vertical.DoMouseWheel(e);
             else
                 horizontal.DoMouseWheel(e);
         }
 	}
 }
-

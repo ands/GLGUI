@@ -15,7 +15,7 @@ namespace GLGUI
 
         public GLFontBuilder(Font font, GLFontBuilderConfiguration config)
         {
-            this.charSet = config.charSet;
+            this.charSet = config.CharSet;
             this.config = config;
             this.font = font;
         }
@@ -78,7 +78,7 @@ namespace GLGUI
         }
 
         //The initial bitmap is simply a long thin strip of all glyphs in a row
-        private Bitmap CreateInitialBitmap(Font font, SizeF maxSize, int initialMargin, out GLFontGlyph[] glyphs, TextGenerationRenderHint renderHint)
+        private Bitmap CreateInitialBitmap(Font font, SizeF maxSize, int initialMargin, out GLFontGlyph[] glyphs, GLFontRenderHint renderHint)
         {
             glyphs = new GLFontGlyph[charSet.Length];
 
@@ -88,19 +88,19 @@ namespace GLGUI
 
             switch(renderHint)
             {
-                case TextGenerationRenderHint.SizeDependent: 
+                case GLFontRenderHint.SizeDependent: 
 					graph.TextRenderingHint = font.Size <= 12.0f  ? TextRenderingHint.ClearTypeGridFit : TextRenderingHint.AntiAlias; 
                     break;
-                case TextGenerationRenderHint.AntiAlias: 
+                case GLFontRenderHint.AntiAlias: 
                     graph.TextRenderingHint = TextRenderingHint.AntiAlias; 
                     break;
-                case TextGenerationRenderHint.AntiAliasGridFit: 
+                case GLFontRenderHint.AntiAliasGridFit: 
                     graph.TextRenderingHint = TextRenderingHint.AntiAliasGridFit; 
                     break;
-                case TextGenerationRenderHint.ClearTypeGridFit:
+                case GLFontRenderHint.ClearTypeGridFit:
                     graph.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
                     break;
-                case TextGenerationRenderHint.SystemDefault:
+                case GLFontRenderHint.SystemDefault:
                     graph.TextRenderingHint = TextRenderingHint.SystemDefault;
                     break;
             }
@@ -127,7 +127,7 @@ namespace GLGUI
             int startX, endX;
             int startY, endY;
 
-            var rect = glyph.rect;
+            var rect = glyph.Rect;
 
             EmptyDel emptyPix;
             if (bitmapData.PixelFormat == PixelFormat.Format32bppArgb)
@@ -166,17 +166,17 @@ namespace GLGUI
             if (endX < startX)
                 startX = endX = rect.X;
 
-			glyph.rect = new Rectangle(startX, startY, endX - startX + 1, endY - startY + 2);
+			glyph.Rect = new Rectangle(startX, startY, endX - startX + 1, endY - startY + 1);
 
             if (setYOffset)
-                glyph.yOffset = glyph.rect.Y;
+                glyph.YOffset = glyph.Rect.Y;
         }
 
         private static void RetargetGlyphRectangleOutwards(BitmapData bitmapData, GLFontGlyph glyph, bool setYOffset, byte alphaTolerance)
         {
             int startX, endX;
             int startY, endY;
-            var rect = glyph.rect;
+            var rect = glyph.Rect;
 
             EmptyDel emptyPix;
 
@@ -199,7 +199,7 @@ namespace GLGUI
                         }
                     }
 
-                    if (!foundPix)
+                    if (foundPix)
                     {
                         startX++;
                         break;
@@ -218,7 +218,7 @@ namespace GLGUI
                         }
                     }
 
-                    if (!foundPix)
+                    if (foundPix)
                     {
                         endX--;
                         break;
@@ -237,7 +237,7 @@ namespace GLGUI
                         }
                     }
 
-                    if (!foundPix)
+                    if (foundPix)
                     {
                         startY++;
                         break;
@@ -256,7 +256,7 @@ namespace GLGUI
                         }
                     }
 
-                    if (!foundPix)
+                    if (foundPix)
                     {
                         endY--;
                         break;
@@ -264,10 +264,10 @@ namespace GLGUI
                 }
             }
 
-            glyph.rect = new Rectangle(startX, startY, endX - startX + 1, endY - startY + 1);
+            glyph.Rect = new Rectangle(startX, startY, endX - startX + 1, endY - startY + 1);
 
             if (setYOffset)
-                glyph.yOffset = glyph.rect.Y;
+                glyph.YOffset = glyph.Rect.Y;
         }
 
         private static List<GLFontBitmap> GenerateBitmapSheetsAndRepack(GLFontGlyph[] sourceGlyphs, BitmapData[] sourceBitmaps, int destSheetWidth, int destSheetHeight, out GLFontGlyph[] destGlyphs, int destMargin, bool usePowerOfTwo)
@@ -275,7 +275,7 @@ namespace GLGUI
             var pages = new List<GLFontBitmap>();
             destGlyphs = new GLFontGlyph[sourceGlyphs.Length];
             GLFontBitmap currentPage = null;
-            int maxY = sourceGlyphs.Max(g => g.rect.Height);
+            int maxY = sourceGlyphs.Max(g => g.Rect.Height);
             int finalPageIndex = 0;
             int finalPageRequiredWidth = 0;
             int finalPageRequiredHeight = 0;
@@ -313,19 +313,19 @@ namespace GLGUI
                     if (totalTries > 10 * sourceGlyphs.Length)
                         throw new Exception("Failed to fit font into texture pages");
 
-                    var rect = sourceGlyphs[i].rect;
+                    var rect = sourceGlyphs[i].Rect;
 
                     if (xPos + rect.Width + 2 * destMargin <= destSheetWidth && yPos + rect.Height + 2 * destMargin <= destSheetHeight)
                     {
                         if (!pre)
                         {
                             //add to page
-                            if(sourceBitmaps[sourceGlyphs[i].page].PixelFormat == PixelFormat.Format32bppArgb)
-                                GLFontBitmap.Blit(sourceBitmaps[sourceGlyphs[i].page], currentPage.bitmapData, rect.X, rect.Y, rect.Width, rect.Height, xPos + destMargin, yPos + destMargin);
+                            if(sourceBitmaps[sourceGlyphs[i].Page].PixelFormat == PixelFormat.Format32bppArgb)
+                                GLFontBitmap.Blit(sourceBitmaps[sourceGlyphs[i].Page], currentPage.bitmapData, rect.X, rect.Y, rect.Width, rect.Height, xPos + destMargin, yPos + destMargin);
                             else
-                                GLFontBitmap.BlitMask(sourceBitmaps[sourceGlyphs[i].page], currentPage.bitmapData, rect.X, rect.Y, rect.Width, rect.Height, xPos + destMargin, yPos + destMargin);
+                                GLFontBitmap.BlitMask(sourceBitmaps[sourceGlyphs[i].Page], currentPage.bitmapData, rect.X, rect.Y, rect.Width, rect.Height, xPos + destMargin, yPos + destMargin);
 
-                            destGlyphs[i] = new GLFontGlyph(pages.Count - 1, new Rectangle(xPos + destMargin, yPos + destMargin, rect.Width, rect.Height), sourceGlyphs[i].yOffset, sourceGlyphs[i].character);
+                            destGlyphs[i] = new GLFontGlyph(pages.Count - 1, new Rectangle(xPos + destMargin, yPos + destMargin, rect.Width, rect.Height), sourceGlyphs[i].YOffset, sourceGlyphs[i].Character);
                         }
                         else
                         {
@@ -389,13 +389,13 @@ namespace GLGUI
             int minYOffset = int.MaxValue;
             foreach (var glyph in initialGlyphs)
             {
-                RetargetGlyphRectangleInwards(initialBitmapData, glyph, true, config.KerningConfig.alphaEmptyPixelTolerance);
-                minYOffset = Math.Min(minYOffset, glyph.yOffset);
+                RetargetGlyphRectangleInwards(initialBitmapData, glyph, true, config.KerningConfig.AlphaEmptyPixelTolerance);
+                minYOffset = Math.Min(minYOffset, glyph.YOffset);
             }
             minYOffset--; // give one pixel of breathing room?
 
             foreach (var glyph in initialGlyphs)
-                glyph.yOffset -= minYOffset;
+                glyph.YOffset -= minYOffset;
            
             GLFontGlyph[] glyphs; 
             var bitmapPages = GenerateBitmapSheetsAndRepack(initialGlyphs, new BitmapData[1] { initialBitmapData }, pageWidth, pageHeight, out glyphs, glyphMargin, usePowerOfTwo);
@@ -406,7 +406,7 @@ namespace GLGUI
             if (config.SuperSampleLevels != 1)
             {
                 ScaleSheetsAndGlyphs(bitmapPages, glyphs, 1.0f / config.SuperSampleLevels);
-                RetargetAllGlyphs(bitmapPages, glyphs, config.KerningConfig.alphaEmptyPixelTolerance);
+                RetargetAllGlyphs(bitmapPages, glyphs, config.KerningConfig.AlphaEmptyPixelTolerance);
             }
 
             //create list of texture pages
@@ -415,7 +415,7 @@ namespace GLGUI
                 pages.Add(new GLFontTexture(page.bitmapData));
 
             var fontData = new GLFontData();
-            fontData.CharSetMapping = glyphs.ToDictionary(g => g.character);
+            fontData.CharSetMapping = glyphs.ToDictionary(g => g.Character);
             fontData.Pages = pages.ToArray();
             fontData.CalculateMeanWidth();
             fontData.CalculateMaxHeight();
@@ -424,9 +424,9 @@ namespace GLGUI
 
             foreach (var glyph in glyphs)
             {
-                var page = pages[glyph.page];
-                glyph.textureMin = new PointF((float)glyph.rect.X / page.Width, (float)glyph.rect.Y / page.Height);
-                glyph.textureMax = new PointF((float)glyph.rect.Right / page.Width, (float)glyph.rect.Bottom / page.Height);
+                var page = pages[glyph.Page];
+                glyph.TextureMin = new PointF((float)glyph.Rect.X / page.Width, (float)glyph.Rect.Y / page.Height);
+                glyph.TextureMax = new PointF((float)glyph.Rect.Right / page.Width, (float)glyph.Rect.Bottom / page.Height);
             }
 
             foreach (var page in bitmapPages)
@@ -447,15 +447,15 @@ namespace GLGUI
 
             foreach (var glyph in glyphs)
             {
-                glyph.rect = new Rectangle((int)(glyph.rect.X * scale), (int)(glyph.rect.Y * scale), (int)(glyph.rect.Width * scale), (int)(glyph.rect.Height * scale));
-                glyph.yOffset = (int)(glyph.yOffset * scale);
+                glyph.Rect = new Rectangle((int)(glyph.Rect.X * scale), (int)(glyph.Rect.Y * scale), (int)(glyph.Rect.Width * scale), (int)(glyph.Rect.Height * scale));
+                glyph.YOffset = (int)(glyph.YOffset * scale);
             }
         }
 
         private static void RetargetAllGlyphs(List<GLFontBitmap> pages, GLFontGlyph[] glyphs, byte alphaTolerance)
         {
             foreach (var glyph in glyphs)
-                RetargetGlyphRectangleOutwards(pages[glyph.page].bitmapData, glyph, false, alphaTolerance);
+                RetargetGlyphRectangleOutwards(pages[glyph.Page].bitmapData, glyph, false, alphaTolerance);
         }
 
         public static void CreateBitmapPerGlyph(GLFontGlyph[] sourceGlyphs, GLFontBitmap[] sourceBitmaps, out GLFontGlyph[]  destGlyphs, out GLFontBitmap[] destBitmaps)
@@ -465,9 +465,9 @@ namespace GLGUI
             for(int i = 0; i < sourceGlyphs.Length; i++)
             {
                 var sg = sourceGlyphs[i];
-                destGlyphs[i] = new GLFontGlyph(i,new Rectangle(0,0,sg.rect.Width,sg.rect.Height),sg.yOffset,sg.character);
-                destBitmaps[i] = new GLFontBitmap(new Bitmap(sg.rect.Width,sg.rect.Height,PixelFormat.Format32bppArgb));
-                GLFontBitmap.Blit(sourceBitmaps[sg.page].bitmapData,destBitmaps[i].bitmapData,sg.rect,0,0);
+                destGlyphs[i] = new GLFontGlyph(i,new Rectangle(0,0,sg.Rect.Width,sg.Rect.Height),sg.YOffset,sg.Character);
+                destBitmaps[i] = new GLFontBitmap(new Bitmap(sg.Rect.Width,sg.Rect.Height,PixelFormat.Format32bppArgb));
+                GLFontBitmap.Blit(sourceBitmaps[sg.Page].bitmapData,destBitmaps[i].bitmapData,sg.Rect,0,0);
             }
         }
 
@@ -476,7 +476,7 @@ namespace GLGUI
             char[] keys = charSet.Keys.ToArray();
             for (int i = 0; i < keys.Length; i++)
                 for (int j = i + 1; j < keys.Length; j++)
-                    if (charSet[keys[i]].page == charSet[keys[j]].page && charSet[keys[i]].rect.IntersectsWith(charSet[keys[j]].rect))
+                    if (charSet[keys[i]].Page == charSet[keys[j]].Page && charSet[keys[i]].Rect.IntersectsWith(charSet[keys[j]].Rect))
                         return new char[2] { keys[i], keys[j] };
             return null;
         }

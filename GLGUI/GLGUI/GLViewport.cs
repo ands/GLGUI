@@ -1,9 +1,6 @@
 using System;
 using System.Drawing;
-using System.Windows.Forms;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using GLGUI;
 
 namespace GLGUI
 {
@@ -30,10 +27,12 @@ namespace GLGUI
 			Inner = new Rectangle(0, 0, outer.Width, outer.Height);
 		}
 
-        public void OnRender(Rectangle scissorRect, double timeDelta)
+        public void OnRender(double timeDelta)
         {
             if(Render == null)
                 return;
+
+            GL.Scissor(GLDraw.ScissorRect.X, Gui.Outer.Height - GLDraw.ScissorRect.Bottom, GLDraw.ScissorRect.Width, GLDraw.ScissorRect.Height);
 
             // save
             int[] mainViewport = new int[4];

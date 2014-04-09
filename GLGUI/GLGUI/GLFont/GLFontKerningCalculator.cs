@@ -13,13 +13,13 @@ namespace GLGUI
 
         private static int Kerning(GLFontGlyph g1, GLFontGlyph g2, XLimits[] lim1, XLimits[] lim2, GLFontKerningConfiguration config)
         {
-            int yOffset1 = g1.yOffset;
-            int yOffset2 = g2.yOffset;
+            int yOffset1 = g1.YOffset;
+            int yOffset2 = g2.YOffset;
 
             int startY = Math.Max(yOffset1, yOffset2);
-            int endY = Math.Min(g1.rect.Height + yOffset1, g2.rect.Height + yOffset2);
+            int endY = Math.Min(g1.Rect.Height + yOffset1, g2.Rect.Height + yOffset2);
 
-            int w1 = g1.rect.Width;
+            int w1 = g1.Rect.Width;
 
             int worstCase = w1;
 
@@ -28,18 +28,18 @@ namespace GLGUI
             for (int j = startY; j < endY; j++)
                 worstCase = Math.Min(worstCase, w1 - lim1[j-yOffset1].Max + lim2[j-yOffset2].Min);
 
-            worstCase = Math.Min(worstCase, g1.rect.Width);
-            worstCase = Math.Min(worstCase, g2.rect.Width);
+            worstCase = Math.Min(worstCase, g1.Rect.Width);
+            worstCase = Math.Min(worstCase, g2.Rect.Width);
 
             //modify by character kerning rules
-            CharacterKerningRule kerningRule = config.GetOverridingCharacterKerningRuleForPair(""+g1.character + g2.character);
-            if (kerningRule == CharacterKerningRule.Zero)
+            GLFontCharacterKerningRule kerningRule = config.GetOverridingCharacterKerningRuleForPair(""+g1.Character + g2.Character);
+            if (kerningRule == GLFontCharacterKerningRule.Zero)
             {
                 return 0;
             }
-            else if (kerningRule == CharacterKerningRule.NotMoreThanHalf)
+            else if (kerningRule == GLFontCharacterKerningRule.NotMoreThanHalf)
             {
-                return (int)Math.Min(Math.Min(g1.rect.Width,g2.rect.Width)*0.5f, worstCase);
+                return (int)Math.Min(Math.Min(g1.Rect.Width,g2.Rect.Width)*0.5f, worstCase);
             }
 
             return worstCase;
@@ -54,8 +54,8 @@ namespace GLGUI
             int maxHeight = 0;
             for (int n = 0; n < charSet.Length; n++)
             {
-                var rect = glyphs[n].rect;
-                var page = bitmapPages[glyphs[n].page];
+                var rect = glyphs[n].Rect;
+                var page = bitmapPages[glyphs[n].Page];
 
                 limits[n] = new XLimits[rect.Height];
 
@@ -73,7 +73,7 @@ namespace GLGUI
                     bool yetToFindFirst = true;
                     for (int i = xStart; i < xEnd; i++)
                     {
-                        if (!GLFontBitmap.EmptyAlphaPixel(page.bitmapData, i, j,config.alphaEmptyPixelTolerance))
+                        if (!GLFontBitmap.EmptyAlphaPixel(page.bitmapData, i, j,config.AlphaEmptyPixelTolerance))
                         {
 
                             if (yetToFindFirst)

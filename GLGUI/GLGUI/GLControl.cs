@@ -1,9 +1,9 @@
 using System;
-using System.Linq;
-using System.Drawing;
 using System.Collections.Generic;
-using System.Windows.Forms;
-using OpenTK.Graphics.OpenGL;
+using System.Drawing;
+using System.Linq;
+using OpenTK;
+using OpenTK.Input;
 
 namespace GLGUI
 {
@@ -20,9 +20,9 @@ namespace GLGUI
         public Size SizeMax { get { return sizeMax; } set { sizeMax = value; Invalidate(); } }
 		public bool HasFocus { get; private set; }
 		public bool IsDragged { get { return isDragged || controls.Any(c => c.IsDragged); } }
-        public AnchorStyles Anchor { get { return anchor; } set { anchor = value; Invalidate(); } }
+        public GLAnchorStyles Anchor { get { return anchor; } set { anchor = value; Invalidate(); } }
         public bool AutoSize { get { return autoSize; } set { autoSize = value; Invalidate(); } }
-		public GLContextMenu ContextMenu { get { return contextMenu; } set { contextMenu = value; } }
+		public virtual GLContextMenu ContextMenu { get { return contextMenu; } set { contextMenu = value; } }
 
         // derived from above properties:
         public Point Location { get { return outer.Location; } set { Outer = new Rectangle(value, outer.Size); } }
@@ -36,15 +36,15 @@ namespace GLGUI
         public int InnerWidth { get { return inner.Width; } }
         public int InnerHeight { get { return inner.Height; } }
 
-        public delegate void RenderEventHandler(Rectangle scissorRect, double timeDelta);
+        public delegate void RenderEventHandler(double timeDelta);
+		public delegate bool KeyEventHandler(object source, KeyboardKeyEventArgs eventArgs);
+		public delegate bool KeyPressEventHandler(object source, KeyPressEventArgs eventArgs);
 
 		public event RenderEventHandler Render;
-		public event MouseEventHandler MouseMove;
-		public event MouseEventHandler MouseDown;
-		public event MouseEventHandler MouseUp;
-		public event MouseEventHandler MouseClick;
-		public event MouseEventHandler MouseDoubleClick;
-		public event MouseEventHandler MouseWheel;
+		public event EventHandler<MouseMoveEventArgs> MouseMove;
+		public event EventHandler<MouseButtonEventArgs> MouseDown;
+		public event EventHandler<MouseButtonEventArgs> MouseUp;
+		public event EventHandler<MouseWheelEventArgs> MouseWheel;
 		public event EventHandler MouseEnter;
 		public event EventHandler MouseLeave;
 		public event KeyEventHandler KeyDown;
@@ -57,12 +57,12 @@ namespace GLGUI
 		protected Rectangle outer;
 		protected Size sizeMin, sizeMax;
 		protected bool isDragged = false;
-		protected AnchorStyles anchor = AnchorStyles.Left | AnchorStyles.Top;
+		protected GLAnchorStyles anchor = GLAnchorStyles.Left | GLAnchorStyles.Top;
 
 		private Rectangle inner;
 		private Rectangle lastInner;
 		private bool autoSize = false;
-		private List<GLControl> controls = new List<GLControl>();
+		private readonly List<GLControl> controls = new List<GLControl>();
 		private static int idCounter = 0;
         private bool visited = false;
 		private GLContextMenu contextMenu;
@@ -70,7 +70,7 @@ namespace GLGUI
 		private GLControl hoverChild;
 		private GLControl focusedChild;
 
-		public GLControl(GLGui gui)
+		protected GLControl(GLGui gui)
 		{
 			Gui = gui;
 			Name = GetType().Name + (idCounter++);
@@ -99,7 +99,7 @@ namespace GLGUI
 		{
 			if (autoSize)
 			{
-				if (Controls.Count() > 0)
+				if (controls.Count > 0)
 				{
 					outer.Width = Controls.Max(c => c.Outer.Right);
 					outer.Height = Controls.Max(c => c.Outer.Bottom);
@@ -202,54 +202,39 @@ namespace GLGUI
 			return r;
 		}
 
-		public void Scissor(Rectangle scissorRect, Rectangle renderRect)
+		internal void DoRender(Point absolutePosition, double timeDelta)
 		{
-			scissorRect.Intersect(ToViewport(renderRect));
-			GL.Scissor(scissorRect.X, Gui.Outer.Height - scissorRect.Bottom, scissorRect.Width, scissorRect.Height);
-		}
-
-		internal void DoRender(Point absolutePosition, Rectangle scissorRect, double timeDelta)
-		{
-			bool pushed = false;
-			if (outer.X != 0 || outer.Y != 0)
-            {
-                pushed = true;
-                GL.PushMatrix();
-                GL.Translate(outer.X, outer.Y, 0.0f);
-                absolutePosition.X += outer.X;
-                absolutePosition.Y += outer.Y;
-            }
+            absolutePosition.X += outer.X;
+            absolutePosition.Y += outer.Y;
 
 			if (Render != null)
 			{
-                scissorRect.Intersect(new Rectangle(absolutePosition, outer.Size));
-				GL.Scissor(scissorRect.X, Gui.Outer.Height - scissorRect.Bottom, scissorRect.Width, scissorRect.Height);
-                Render(scissorRect, timeDelta);
+                GLDraw.ControlRect = new Rectangle(absolutePosition, outer.Size);
+                GLDraw.ScissorRect.Intersect(GLDraw.ControlRect);
+                if (GLDraw.ScissorRect.Width != 0 && GLDraw.ScissorRect.Height != 0)
+                    Render(timeDelta);
 			}
 
-			if (inner.X != 0 || inner.Y != 0)
+            if (controls.Count > 0)
             {
-				if (!pushed)
-				{
-					pushed = true;
-					GL.PushMatrix();
-				}
-                GL.Translate(inner.X, inner.Y, 0.0f);
                 absolutePosition.X += inner.X;
                 absolutePosition.Y += inner.Y;
-				scissorRect.Intersect(new Rectangle(absolutePosition, inner.Size));
+                GLDraw.ControlRect = new Rectangle(absolutePosition, inner.Size);
+                GLDraw.ScissorRect.Intersect(GLDraw.ControlRect);
+
+                if (GLDraw.ScissorRect.Width != 0 && GLDraw.ScissorRect.Height != 0)
+                {
+                    Rectangle scissorRect = GLDraw.ScissorRect;
+                    for (int i = controls.Count - 1; i >= 0; i--)
+                    {
+                        controls[i].DoRender(absolutePosition, timeDelta);
+                        GLDraw.ScissorRect = scissorRect;
+                    }
+                }
             }
-			else if (Render == null || inner.Size.Width != outer.Size.Width || inner.Size.Height != outer.Size.Height)
-			    scissorRect.Intersect(new Rectangle(absolutePosition, inner.Size));
-
-			for (int i = controls.Count - 1; i >= 0; i--)
-                controls[i].DoRender(absolutePosition, scissorRect, timeDelta);
-
-            if(pushed)
-			    GL.PopMatrix();
 		}
 
-		internal void DoMouseMove(MouseEventArgs e)
+		internal void DoMouseMove(MouseMoveEventArgs e)
 		{
 			if (Parent == null)
 				return;
@@ -260,11 +245,11 @@ namespace GLGUI
 
 				if (hoverChild != null && hoverChild.IsDragged)
 				{
-					hoverChild.DoMouseMove(new MouseEventArgs(e.Button, e.Clicks, im.X - hoverChild.Outer.X, im.Y - hoverChild.Outer.Y, e.Delta));
+					hoverChild.DoMouseMove(new MouseMoveEventArgs(im.X - hoverChild.Outer.X, im.Y - hoverChild.Outer.Y, e.XDelta, e.YDelta));
 					return;
 				}
 
-				if(inner.Contains(e.Location))
+				if(inner.Contains(e.Position))
 				{
 					foreach (GLControl control in controls)
 					{
@@ -277,7 +262,7 @@ namespace GLGUI
 								hoverChild = control;
 								hoverChild.DoMouseEnter();
 							}
-							control.DoMouseMove(new MouseEventArgs(e.Button, e.Clicks, im.X - control.Outer.X, im.Y - control.Outer.Y, e.Delta));
+							control.DoMouseMove(new MouseMoveEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.XDelta, e.YDelta));
 							return;
 						}
 					}
@@ -294,7 +279,7 @@ namespace GLGUI
 				MouseMove(this, e);
 		}
 
-		internal void DoMouseDown(MouseEventArgs e)
+		internal void DoMouseDown(MouseButtonEventArgs e)
 		{
 			if (Parent == null)
 				return;
@@ -310,7 +295,7 @@ namespace GLGUI
 						Focus(this, EventArgs.Empty);
 				}
 
-				if (inner.Contains(e.Location))
+				if (inner.Contains(e.Position))
 				{
 					int i = 0;
 					foreach(GLControl control in controls)
@@ -323,7 +308,7 @@ namespace GLGUI
 									focusedChild.DoFocusLost();
 								focusedChild = control;
 							}
-							control.DoMouseDown(new MouseEventArgs(e.Button, e.Clicks, im.X - control.Outer.X, im.Y - control.Outer.Y, e.Delta));
+							control.DoMouseDown(new MouseButtonEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.Button, e.IsPressed));
 							if (control is GLForm)
 							{
 								GLControl tmp = controls[i]; // move to front
@@ -340,11 +325,11 @@ namespace GLGUI
 			if (MouseDown != null)
 				MouseDown(this, e);
 
-			if (e.Button == MouseButtons.Right && contextMenu != null)
-				Gui.OpenContextMenu(contextMenu, ToViewport(e.Location));
+			if (e.Button == MouseButton.Right && contextMenu != null)
+				Gui.OpenContextMenu(contextMenu, ToViewport(e.Position));
 		}
 
-		internal void DoMouseUp(MouseEventArgs e)
+		internal void DoMouseUp(MouseButtonEventArgs e)
 		{
 			if (Parent == null)
 				return;
@@ -355,17 +340,17 @@ namespace GLGUI
 
 				if (hoverChild != null && hoverChild.IsDragged)
 				{
-					hoverChild.DoMouseUp(new MouseEventArgs(e.Button, e.Clicks, im.X - hoverChild.Outer.X, im.Y - hoverChild.Outer.Y, e.Delta));
+					hoverChild.DoMouseUp(new MouseButtonEventArgs(im.X - hoverChild.Outer.X, im.Y - hoverChild.Outer.Y, e.Button, e.IsPressed));
 					return;
 				}
 
-				if (inner.Contains(e.Location))
+				if (inner.Contains(e.Position))
 				{
 					foreach(GLControl control in controls)
 					{
 						if (control.Outer.Contains(im))
 						{
-							control.DoMouseUp(new MouseEventArgs(e.Button, e.Clicks, im.X - control.Outer.X, im.Y - control.Outer.Y, e.Delta));
+							control.DoMouseUp(new MouseButtonEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.Button, e.IsPressed));
 							return;
 						}
 					}
@@ -376,59 +361,7 @@ namespace GLGUI
 				MouseUp(this, e);
 		}
 
-		internal void DoMouseClick(MouseEventArgs e)
-		{
-			if (Parent == null)
-				return;
-
-			if (!isDragged)
-			{
-				Point im = new Point(e.X - inner.X, e.Y - inner.Y);
-
-				if (inner.Contains(e.Location))
-				{
-					foreach(GLControl control in controls)
-					{
-						if (control.Outer.Contains(im))
-						{
-							control.DoMouseClick(new MouseEventArgs(e.Button, e.Clicks, im.X - control.Outer.X, im.Y - control.Outer.Y, e.Delta));
-							return;
-						}
-					}
-				}
-			}
-
-			if (MouseClick != null)
-				MouseClick(this, e);
-		}
-
-		internal void DoMouseDoubleClick(MouseEventArgs e)
-		{
-			if (Parent == null)
-				return;
-
-			if (!isDragged)
-			{
-				Point im = new Point(e.X - inner.X, e.Y - inner.Y);
-
-				if (inner.Contains(e.Location))
-				{
-					foreach(GLControl control in controls)
-					{
-						if (control.Outer.Contains(im))
-						{
-							control.DoMouseDoubleClick(new MouseEventArgs(e.Button, e.Clicks, im.X - control.Outer.X, im.Y - control.Outer.Y, e.Delta));
-							return;
-						}
-					}
-				}
-			}
-
-			if (MouseDoubleClick != null)
-				MouseDoubleClick(this, e);
-		}
-
-		internal bool DoMouseWheel(MouseEventArgs e)
+		internal bool DoMouseWheel(MouseWheelEventArgs e)
 		{
 			if (Parent == null)
 				return false;
@@ -437,13 +370,13 @@ namespace GLGUI
 			{
 				Point im = new Point(e.X - inner.X, e.Y - inner.Y);
 
-				if (inner.Contains(e.Location))
+				if (inner.Contains(e.Position))
 				{
 					foreach(GLControl control in controls)
 					{
 						if (control.Outer.Contains(im))
 						{
-							if (control.DoMouseWheel(new MouseEventArgs(e.Button, e.Clicks, im.X - control.Outer.X, im.Y - control.Outer.Y, e.Delta)))
+							if (control.DoMouseWheel(new MouseWheelEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.Value, e.Delta)))
 								return true;
 						}
 					}
@@ -463,7 +396,7 @@ namespace GLGUI
 			if (Parent == null)
 				return;
 
-			Gui.Parent.Cursor = Cursors.Default;
+			Gui.Cursor = GLCursor.Default;
 
 			if (MouseEnter != null)
 				MouseEnter(this, EventArgs.Empty);
@@ -484,61 +417,73 @@ namespace GLGUI
 				MouseLeave(this, EventArgs.Empty);
 		}
 
-		internal void DoKeyUp(KeyEventArgs e)
+		internal bool DoKeyUp(KeyboardKeyEventArgs e)
 		{
 			if (Parent == null)
-				return;
+				return false;
 
-			foreach (GLControl control in controls)
+			if (!isDragged)
 			{
-				if (control.HasFocus)
+				foreach(GLControl control in controls)
 				{
-					control.DoKeyUp(e);
-					if(e.Handled)
-						return;
+					if (control.HasFocus)
+					{
+						if (control.DoKeyUp(e))
+							return true;
+					}
 				}
 			}
 
 			if (KeyUp != null)
-				KeyUp(this, e);
+				return KeyUp(this, e);
+
+			return false;
 		}
 
-		internal void DoKeyDown(KeyEventArgs e)
+		internal bool DoKeyDown(KeyboardKeyEventArgs e)
 		{
 			if (Parent == null)
-				return;
+				return false;
 
-			foreach (GLControl control in controls)
+			if (!isDragged)
 			{
-				if (control.HasFocus)
+				foreach(GLControl control in controls)
 				{
-					control.DoKeyDown(e);
-					if(e.Handled)
-						return;
+					if (control.HasFocus)
+					{
+						if (control.DoKeyDown(e))
+							return true;
+					}
 				}
 			}
 
 			if (KeyDown != null)
-				KeyDown(this, e);
+				return KeyDown(this, e);
+
+			return false;
 		}
 
-		internal void DoKeyPress(KeyPressEventArgs e)
+		internal bool DoKeyPress(KeyPressEventArgs e)
 		{
 			if (Parent == null)
-				return;
+				return false;
 
-			foreach (GLControl control in controls)
+			if (!isDragged)
 			{
-				if (control.HasFocus)
+				foreach(GLControl control in controls)
 				{
-					control.DoKeyPress(e);
-					if(e.Handled)
-						return;
+					if (control.HasFocus)
+					{
+						if (control.DoKeyPress(e))
+							return true;
+					}
 				}
 			}
 
 			if (KeyPress != null)
-				KeyPress(this, e);
+				return KeyPress(this, e);
+
+			return false;
 		}
 
 		internal void DoFocusLost()
@@ -575,7 +520,7 @@ namespace GLGUI
 				var o = control.Outer;
 				int l = o.Left, r = o.Right, t = o.Top, b = o.Bottom;
 
-				if ((a & (AnchorStyles.Left | AnchorStyles.Right)) == 0)
+				if ((a & (GLAnchorStyles.Left | GLAnchorStyles.Right)) == 0)
 				{
 					dx += control.subPixelDx; control.subPixelDx = Math.Sign(dx) * (dx & 1);
 					l += dx / 2;
@@ -583,13 +528,13 @@ namespace GLGUI
 				}
 				else
 				{
-					if ((a & AnchorStyles.Left) == 0)
+					if ((a & GLAnchorStyles.Left) == 0)
 						l += dx;
-					if ((a & AnchorStyles.Right) != 0)
+					if ((a & GLAnchorStyles.Right) != 0)
 						r += dx;
 				}
 
-				if ((a & (AnchorStyles.Top | AnchorStyles.Bottom)) == 0)
+				if ((a & (GLAnchorStyles.Top | GLAnchorStyles.Bottom)) == 0)
 				{
 					dy += control.subPixelDy; control.subPixelDy = Math.Sign(dy) * (dy & 1);
 					t += dy / 2;
@@ -597,14 +542,13 @@ namespace GLGUI
 				}
 				else
 				{
-					if ((a & AnchorStyles.Top) == 0)
+					if ((a & GLAnchorStyles.Top) == 0)
 						t += dy;
-					if ((a & AnchorStyles.Bottom) != 0)
+					if ((a & GLAnchorStyles.Bottom) != 0)
 						b += dy;
 				}
 
-				control.outer = new Rectangle(l, t, r - l, b - t);
-                control.Invalidate();
+				control.Outer = new Rectangle(l, t, r - l, b - t);
 			}
 		}
 
@@ -614,4 +558,3 @@ namespace GLGUI
 		}
 	}
 }
-

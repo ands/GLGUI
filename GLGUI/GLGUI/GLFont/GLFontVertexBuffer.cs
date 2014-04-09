@@ -1,27 +1,41 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace GLGUI
 {
-    internal class GLFontVertexBuffer : IDisposable
+	public class GLFontVertexBuffer : IDisposable
     {
-        internal int TextureID;
-        int vboID;
+		public int TextureID { get { return textureID; } internal set { textureID = value; } }
+		public int VaoID { get { return vaoID; } }
+		public int VertexCount { get { return vertexCount; } }
+
+		int textureID;
+		int vaoID, vboID;
         float[] vertices = new float[1024];
         int floatCount = 0;
         int vertexCount = 0;
 
         public GLFontVertexBuffer(int textureID)
         {
-            TextureID = textureID;
-            GL.GenBuffers(1, out vboID);
+			this.textureID = textureID;
+			vaoID = GL.GenVertexArray();
+			vboID = GL.GenBuffer();
+			GLGui.usedVertexArrays++;
         }
+
+		~GLFontVertexBuffer()
+		{
+			lock(GLGui.toDispose)
+			{
+				GLGui.toDispose.Add(this);
+			}
+		}
 
         public void Dispose()
         {
-            GL.DeleteBuffers(1, ref vboID);
+			GL.DeleteVertexArray(vaoID);
+			GL.DeleteBuffer(vboID);
+			GLGui.usedVertexArrays--;
         }
 
         public void Reset()
@@ -63,8 +77,15 @@ namespace GLGUI
             if (floatCount == 0)
                 return;
 
+			GL.BindVertexArray(vaoID);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vboID);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(floatCount * 4), vertices, BufferUsageHint.StaticDraw);
+
+			GL.VertexPointer(2, VertexPointerType.Float, 16, 0);
+			GL.EnableClientState(ArrayCap.VertexArray);
+			GL.TexCoordPointer(2, TexCoordPointerType.Float, 16, 8);
+			GL.EnableClientState(ArrayCap.TextureCoordArray);
+			GL.BindVertexArray(0);
         }
 
         public void Draw()
@@ -73,14 +94,11 @@ namespace GLGUI
                 return;
 
             GL.Enable(EnableCap.Texture2D);
+			GL.BindTexture(TextureTarget.Texture2D, textureID);
 
-            GL.BindTexture(TextureTarget.Texture2D, TextureID);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vboID);
-
-            GL.VertexPointer(2, VertexPointerType.Float, 16, 0);
-            GL.TexCoordPointer(2, TexCoordPointerType.Float, 16, 8);
-
+			GL.BindVertexArray(vaoID);
 			GL.DrawArrays(PrimitiveType.Quads, 0, vertexCount);
+			GL.BindVertexArray(0);
 
             GL.Disable(EnableCap.Texture2D);
         }

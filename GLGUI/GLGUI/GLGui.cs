@@ -1,44 +1,53 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Windows.Forms;
-using OpenTK.Graphics.OpenGL;
 using System.Drawing;
-using System.Linq;
+using OpenTK;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
 
 namespace GLGUI
 {
 	public class GLGui : GLControl
 	{
-		public new Control Parent;
+		public new GameWindow Parent;
 		public GLSkin Skin = new GLSkin();
 		public double RenderDuration { get { return renderDuration; } }
 		public bool LayoutSuspended { get { return suspendCounter > 0; } }
+		public GLCursor Cursor { get { return cursor; } set { cursor = value; Parent.CursorHandle = cursor.Handle; } }
+
+		internal static List<IDisposable> toDispose = new List<IDisposable>();
+		internal static int usedTextures = 0;
+		internal static int usedVertexArrays = 0;
+		private static int lastUsedTextures = 0;
+		private static int lastUsedVertexArrays = 0;
 
 		private GLContextMenu currentContextMenu;
         private Stopwatch stopwatch;
 		private double renderDuration;
 		private int suspendCounter = 0;
+		private GLCursor cursor;
+		//private bool mouseInside = true;
 
-		public GLGui(Control parent) : base(null)
+		public GLGui(GameWindow parent) : base(null)
 		{
+			GLCursor.LoadCursors(parent);
+
 			Gui = this;
 			base.Parent = this;
 			Parent = parent;
 			Outer = parent.ClientRectangle;
-			Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
+			Anchor = GLAnchorStyles.Left | GLAnchorStyles.Top | GLAnchorStyles.Right | GLAnchorStyles.Bottom;
 
-            parent.MouseMove += (s, e) => DoMouseMove(e);
-			parent.MouseDown += OnMouseDown;
-            parent.MouseUp += (s, e) => DoMouseUp(e);
-			parent.MouseClick += (s, e) => DoMouseClick(e);
-            parent.MouseDoubleClick += (s, e) => DoMouseDoubleClick(e);
-            parent.MouseWheel += (s, e) => DoMouseWheel(e);
-            parent.MouseEnter += (s, e) => DoMouseEnter();
-            parent.MouseLeave += (s, e) => DoMouseLeave();
-            parent.KeyDown += (s, e) => DoKeyDown(e);
-            parent.KeyUp += (s, e) => DoKeyUp(e);
-            parent.KeyPress += (s, e) => DoKeyPress(e);
+			parent.Mouse.Move += (s, e) => DoMouseMove(e);
+			parent.Mouse.ButtonDown += OnMouseDown;
+			parent.Mouse.ButtonUp += OnMouseUp;
+			parent.Mouse.WheelChanged += (s, e) => DoMouseWheel(e);
+			parent.MouseEnter += (s, e) => DoMouseEnter(); // these seem to be broken on windows
+			parent.MouseLeave += (s, e) => DoMouseLeave(); // (mouse click + move fires leave + enter events)
+			parent.KeyDown += (s, e) => DoKeyDown(e);
+			parent.KeyUp += (s, e) => DoKeyUp(e);
+			parent.KeyPress += (s, e) => DoKeyPress(e);
 			parent.Resize += (s, e) => Outer = parent.ClientRectangle;
 		}
 		
@@ -83,13 +92,14 @@ namespace GLGUI
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             GL.Enable(EnableCap.ScissorTest);
 
-            GL.EnableClientState(ArrayCap.VertexArray);
-            GL.EnableClientState(ArrayCap.TextureCoordArray);
+            var prevGui = GLDraw.CurrentGui;
+            GLDraw.CurrentGui = this;
+            GLDraw.ControlRect = outer;
+            GLDraw.ScissorRect = outer;
 
-            DoRender(new Point(), outer, delta);
+            DoRender(new Point(), delta);
 
-            GL.DisableClientState(ArrayCap.VertexArray);
-            GL.DisableClientState(ArrayCap.TextureCoordArray);
+            GLDraw.CurrentGui = prevGui;
 
             GL.Disable(EnableCap.ScissorTest);
             GL.Disable(EnableCap.Blend);
@@ -99,7 +109,46 @@ namespace GLGUI
             GL.MatrixMode(MatrixMode.Modelview);
             GL.PopMatrix();
 
-			renderDuration = stopwatch.Elapsed.TotalMilliseconds * 0.001;
+            // MouseEnter and MouseLeave workarounds
+			/*if (Parent.Bounds.Contains(System.Windows.Forms.Cursor.Position))
+            {
+                if (!mouseInside)
+                {
+                    DoMouseEnter();
+                    mouseInside = true;
+                }
+            }
+            else
+            {
+                if (mouseInside)
+                {
+                    DoMouseLeave();
+                    mouseInside = false;
+                }
+            }*/
+
+			lock(toDispose)
+			{
+				foreach(var d in toDispose)
+					d.Dispose();
+				toDispose.Clear();
+			}
+			if(usedVertexArrays != lastUsedVertexArrays)
+			{
+				lastUsedVertexArrays = usedVertexArrays;
+				if(usedVertexArrays > 2048)
+					Console.WriteLine("Warning: Used vertex arrays by GLGUI: {0}", usedVertexArrays);
+				GC.Collect();
+			}
+			if(usedTextures != lastUsedTextures)
+			{
+				lastUsedTextures = usedTextures;
+				if(usedTextures > 32)
+					Console.WriteLine("Warning: Used textures by GLGUI: {0}", usedTextures);
+				GC.Collect();
+			}
+
+			renderDuration = stopwatch.Elapsed.TotalMilliseconds;
         }
 
 		internal void OpenContextMenu(GLContextMenu contextMenu, Point position)
@@ -121,11 +170,31 @@ namespace GLGUI
 			OpenContextMenu(null, Point.Empty);
 		}
 
-		private void OnMouseDown(object sender, MouseEventArgs e)
+		private void OnMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (currentContextMenu != null && !currentContextMenu.Outer.Contains(e.Location))
-				CloseContextMenu();
+			if (currentContextMenu != null)
+			{
+				if (currentContextMenu.Outer.Contains(e.Position))
+				{
+					currentContextMenu.DoMouseDown(new MouseButtonEventArgs(e.X - currentContextMenu.Outer.X, e.Y - currentContextMenu.Outer.Y, e.Button, e.IsPressed));
+					return;
+				}
+				else
+					CloseContextMenu();
+			}
+			    
 			DoMouseDown(e);
+		}
+
+		private void OnMouseUp(object sender, MouseButtonEventArgs e)
+		{
+			if (currentContextMenu != null && currentContextMenu.Outer.Contains(e.Position))
+			{
+				currentContextMenu.DoMouseUp(new MouseButtonEventArgs(e.X - currentContextMenu.Outer.X, e.Y - currentContextMenu.Outer.Y, e.Button, e.IsPressed));
+				return;
+			}
+
+			DoMouseUp(e);
 		}
 	}
 }

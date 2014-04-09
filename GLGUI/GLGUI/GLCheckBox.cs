@@ -1,9 +1,6 @@
 using System;
-using OpenTK.Graphics.OpenGL;
-using System.Windows.Forms;
 using System.Drawing;
-using GLGUI;
-using OpenTK;
+using OpenTK.Input;
 
 namespace GLGUI
 {
@@ -77,26 +74,19 @@ namespace GLGUI
 				innerWidth, outer.Height - skin.Border.Vertical);
 		}
 
-        private void OnRender(Rectangle scissorRect, double timeDelta)
+        private void OnRender(double timeDelta)
 		{
-			GLDraw.FilledRectangle(outerBox.Size, skin.BorderColor);
-			GLDraw.FilledRectangle(innerBox, skin.BackgroundColor);
+			GLDraw.FillRect(ref outerBox, ref skin.BorderColor);
+			GLDraw.FillRect(ref innerBox, ref skin.BackgroundColor);
 			if (_checked)
-			{
-				GLDraw.FilledRectangle(new Rectangle(innerBox.X + skin.Border.Left, innerBox.Y + skin.Border.Top,
-					innerBox.Width - skin.Border.Horizontal, innerBox.Height - skin.Border.Vertical), skin.BorderColor);
-				/*GLDraw.Line(innerBox.X + skin.Border.Left, innerBox.Y + skin.Border.Top,
-					innerBox.Right - skin.Border.Right, innerBox.Bottom - skin.Border.Bottom, skin.BorderColor);
-				GLDraw.Line(innerBox.Right - skin.Border.Right, innerBox.Y + skin.Border.Top,
-					innerBox.X + skin.Border.Left, innerBox.Bottom - skin.Border.Bottom, skin.BorderColor);*/
-			}
-			Scissor(scissorRect, Inner);
-            skin.Font.Print(textProcessed, new Vector2(Inner.X, Inner.Y), skin.Color);
+				GLDraw.FillRect(new Rectangle(innerBox.X + skin.Border.Left, innerBox.Y + skin.Border.Top,
+					innerBox.Width - skin.Border.Horizontal, innerBox.Height - skin.Border.Vertical), ref skin.BorderColor);
+            GLDraw.Text(textProcessed, Inner, ref skin.Color);
 		}
 
-		private void OnMouseDown(object sender, MouseEventArgs e)
+		private void OnMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left && outerBox.Contains(e.Location))
+			if (enabled && e.Button == MouseButton.Left && outerBox.Contains(e.Position))
 			{
 				isDragged = true;
 				down = true;
@@ -104,15 +94,15 @@ namespace GLGUI
 			}
 		}
 
-		private void OnMouseUp(object sender, MouseEventArgs e)
+		private void OnMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+            if (enabled && e.Button == MouseButton.Left)
 			{
 				if (down)
 				{
 					down = false;
 					isDragged = false;
-					if(outerBox.Contains(e.Location))
+					if(outerBox.Contains(e.Position))
 					{
 						_checked = !_checked;
 						if(Changed != null)

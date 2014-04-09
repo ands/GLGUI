@@ -5,6 +5,7 @@
 *.exe
 *.pdb
 *.mdb
+*.db
 *.manifest
 GLGUI.dll
 obj

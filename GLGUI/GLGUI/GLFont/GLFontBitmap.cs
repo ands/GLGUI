@@ -49,7 +49,7 @@ namespace GLGUI
         public static unsafe bool EmptyPixel(BitmapData bitmapData, int px, int py)
         {
             byte* addr = (byte*)(bitmapData.Scan0) + bitmapData.Stride * py + px * 3;
-            return (*addr == 0 && *(addr + 1) == 0 && *(addr + 2) == 0);
+			return (*addr == 0 && *(addr + 1) == 0 && *(addr + 2) == 0);
         }
 
         /// <summary>

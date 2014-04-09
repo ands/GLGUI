@@ -1,16 +1,9 @@
 using System;
-using System.Linq;
 using System.Drawing;
-using System.Windows.Forms;
+using OpenTK.Input;
 
 namespace GLGUI
 {
-	public enum GLSplitterOrientation
-	{
-		Horizontal,
-		Vertical
-	}
-
 	public class GLSplitLayout : GLControl
 	{
 		public GLSplitterOrientation Orientation { get { return orientation; } set { orientation = value; Invalidate(); } }
@@ -66,9 +59,9 @@ namespace GLGUI
 		}
 
         private Rectangle splitterRect;
-		private void OnRender(Rectangle scissorRect, double timeDelta)
+		private void OnRender(double timeDelta)
 		{
-            GLDraw.FilledRectangle(splitterRect, skin.BackgroundColor);
+            GLDraw.FillRect(ref splitterRect, ref skin.BackgroundColor);
 		}
 
 		public override T Add<T>(T control)
@@ -97,22 +90,22 @@ namespace GLGUI
 			base.Remove(control);
 		}
 
-		private void OnMouseDown(object sender, MouseEventArgs e)
+		private void OnMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+			if (e.Button == MouseButton.Left)
 			{
 				isDragged = true;
 			}
 		}
 
-		private void OnMouseUp(object sender, MouseEventArgs e)
+		private void OnMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+			if (e.Button == MouseButton.Left)
 			{
 				if (isDragged)
 				{
 					isDragged = false;
-					Gui.Parent.Cursor = Cursors.Default;
+					Gui.Cursor = GLCursor.Default;
 				}
 			}
 		}
@@ -127,8 +120,7 @@ namespace GLGUI
 					splitterPosition = (float)(e.Y - skin.SplitterSize / 2) / (float)Inner.Height;
 				Invalidate();
 			}
-			Gui.Parent.Cursor = orientation == GLSplitterOrientation.Horizontal ? Cursors.SizeNS : Cursors.SizeWE;
+			Gui.Cursor = orientation == GLSplitterOrientation.Horizontal ? GLCursor.SizeNS : GLCursor.SizeWE;
 		}
 	}
 }
-

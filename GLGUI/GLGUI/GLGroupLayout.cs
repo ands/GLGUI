@@ -42,10 +42,10 @@ namespace GLGUI
             Inner = new Rectangle(skin.Border.Left, skin.Border.Top, outer.Width - skin.Border.Horizontal, outer.Height - skin.Border.Vertical);
 		}
 
-        private void OnRender(Rectangle scissorRect, double timeDelta)
+        private void OnRender(double timeDelta)
         {
-            GLDraw.FilledRectangle(outer.Size, skin.BorderColor);
-            GLDraw.FilledRectangle(Inner, skin.BackgroundColor);
+            GLDraw.Fill(ref skin.BorderColor);
+            GLDraw.FillRect(Inner, ref skin.BackgroundColor);
         }
 	}
 }

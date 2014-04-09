@@ -1,18 +1,9 @@
 using System;
-using OpenTK.Graphics.OpenGL;
-using System.Windows.Forms;
 using System.Drawing;
-using GLGUI;
-using OpenTK;
+using OpenTK.Input;
 
 namespace GLGUI
 {
-	public enum GLSliderOrientation
-    {
-        Horizontal,
-        Vertical
-    }
-
 	public class GLSlider : GLControl
 	{
 		public GLSliderOrientation Direction { get { return direction; } set { direction = value; Invalidate(); } }
@@ -22,7 +13,7 @@ namespace GLGUI
         public GLSkin.GLSliderSkin SkinPressed { get { return skinPressed; } set { skinPressed = value; Invalidate(); } }
         public GLSkin.GLSliderSkin SkinHover { get { return skinHover; } set { skinHover = value; Invalidate(); } }
         public GLSkin.GLSliderSkin SkinDisabled { get { return skinDisabled; } set { skinDisabled = value; Invalidate(); } }
-        public float MouseWheelStep = 0.0001f;
+        public float MouseWheelStep = 0.001f;
 
         public event EventHandler ValueChanged;
 
@@ -49,8 +40,8 @@ namespace GLGUI
             skinHover = Gui.Skin.SliderHover;
             skinDisabled = Gui.Skin.SliderDisabled;
 
-			outer = new Rectangle(0, 0, 12, 12);
-			sizeMin = new Size(12, 12);
+			outer = new Rectangle(0, 0, 8, 8);
+			sizeMin = new Size(8, 8);
 			sizeMax = new Size(int.MaxValue, int.MaxValue);
 		}
 
@@ -78,44 +69,44 @@ namespace GLGUI
                 value = 0.0f;
             value = Math.Min(Math.Max(value, 0.0f), 1.0f);
 			if (direction == GLSliderOrientation.Horizontal)
-				Inner = new Rectangle((int)((outer.Width - 12) * value), 0, 12, 12);
+				Inner = new Rectangle((int)((outer.Width - 8) * value), 0, 8, 8);
             else
-				Inner = new Rectangle(0, (int)((outer.Height - 12) * value), 12, 12);
+				Inner = new Rectangle(0, (int)((outer.Height - 8) * value), 8, 8);
 		}
 
-        private void OnRender(Rectangle scissorRect, double timeDelta)
+        private void OnRender(double timeDelta)
 		{
-			GLDraw.FilledRectangle(outer.Size, skin.BackgroundColor);
-            GLDraw.FilledRectangle(Inner, skin.KnobColor);
+			GLDraw.Fill(ref skin.BackgroundColor);
+            GLDraw.FillRect(Inner, ref skin.KnobColor);
 		}
 
-        private void OnMouseMove(object sender, MouseEventArgs e)
+		private void OnMouseMove(object sender, MouseMoveEventArgs e)
         {
             if (isDragged && enabled)
             {
 				if (direction == GLSliderOrientation.Horizontal)
-					Value = (float)(e.X - 6) / (float)(outer.Width - 12);
+					Value = (float)(e.X - 4) / (float)(outer.Width - 8);
                 else
-					Value = (float)(e.Y - 6) / (float)(outer.Height - 12);
+					Value = (float)(e.Y - 4) / (float)(outer.Height - 8);
             }
         }
 
-		private void OnMouseDown(object sender, MouseEventArgs e)
+		private void OnMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left && enabled)
+			if (e.Button == MouseButton.Left && enabled)
 			{
 				isDragged = true;
 				down = true;
 				if (direction == GLSliderOrientation.Horizontal)
-					Value = (float)(e.X - 6) / (float)(outer.Width - 12);
+					Value = (float)(e.X - 4) / (float)(outer.Width - 8);
                 else
-					Value = (float)(e.Y - 6) / (float)(outer.Height - 12);
+					Value = (float)(e.Y - 4) / (float)(outer.Height - 8);
 			}
 		}
 
-		private void OnMouseUp(object sender, MouseEventArgs e)
+		private void OnMouseUp(object sender, MouseButtonEventArgs e)
 		{
-            if (e.Button == MouseButtons.Left && enabled)
+            if (e.Button == MouseButton.Left && enabled)
 			{
 				if (down)
 				{
@@ -138,11 +129,10 @@ namespace GLGUI
             Invalidate();
 		}
 
-        private void OnMouseWheel(object sender, MouseEventArgs e)
+		private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (Enabled)
                 Value += -e.Delta * MouseWheelStep;
         }
 	}
 }
-

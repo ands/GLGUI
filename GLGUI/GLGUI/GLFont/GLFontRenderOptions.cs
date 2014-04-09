@@ -1,10 +1,5 @@
-﻿using System.Drawing;
-
-namespace GLGUI
+﻿namespace GLGUI
 {
-    public enum GLFontAlignment { Left = 0, Right, Centre, Justify }
-    public enum GLFontMonospacing { Natural = 0, Yes, No }
-
     public class GLFontRenderOptions
     {
         /// <summary>
@@ -15,7 +10,7 @@ namespace GLGUI
         /// <summary>
         /// Spacing between words in units of average glyph width
         /// </summary>
-        public float WordSpacing = 0.9f;
+		public float WordSpacing = 0.6f;
 
         /// <summary>
         /// Line spacing in units of max glyph width

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 
 namespace GLGUI
 {
@@ -89,50 +88,35 @@ namespace GLGUI
                 }
             }
 
-            if (processedText.vertexBuffers == null || processedText.vertexBuffers[0].TextureID != fontData.Pages[0].GLTexID)
+			if (processedText.VertexBuffers == null)
+			{
+				processedText.VertexBuffers = new GLFontVertexBuffer[fontData.Pages.Length];
+				for (int i = 0; i < processedText.VertexBuffers.Length; i++)
+					processedText.VertexBuffers[i] = new GLFontVertexBuffer(fontData.Pages[i].TextureID);
+			}
+			if (processedText.VertexBuffers[0].TextureID != fontData.Pages[0].TextureID)
             {
-                processedText.vertexBuffers = new GLFontVertexBuffer[fontData.Pages.Length];
-                for (int i = 0; i < processedText.vertexBuffers.Length; i++)
-                    processedText.vertexBuffers[i] = new GLFontVertexBuffer(fontData.Pages[i].GLTexID);
+				for (int i = 0; i < processedText.VertexBuffers.Length; i++)
+					processedText.VertexBuffers[i].TextureID = fontData.Pages[i].TextureID;
             }
             processedText.textNodeList = nodeList;
             processedText.maxSize = maxSize;
             processedText.alignment = alignment;
 
-            foreach (var buffer in processedText.vertexBuffers)
+			foreach (var buffer in processedText.VertexBuffers)
                 buffer.Reset();
-            SizeF size = PrintOrMeasure(processedText.vertexBuffers, processedText, false);
-            foreach (var buffer in processedText.vertexBuffers)
+			SizeF size = PrintOrMeasure(processedText.VertexBuffers, processedText, false);
+			foreach (var buffer in processedText.VertexBuffers)
                 buffer.Load();
             return size;
         }
 
-        public void Print(GLFontText processedText, Vector2 position, Color color)
-        {
-            //position = LockToPixel(position);
-            GL.PushMatrix();
-            GL.Translate(position.X, position.Y, 0.0f);
-            GL.Color4(color);
-            for (int i = 0; i < processedText.vertexBuffers.Length; i++)
-                processedText.vertexBuffers[i].Draw();
-            GL.PopMatrix();
-        }
-
-        public struct TextPosition
-        {
-            public int Index;
-            public Vector2 Position;
-        }
-
-        public TextPosition GetTextPosition(GLFontText processedText, TextPosition position) // bad hack. only works with single page fonts
+		public GLFontTextPosition GetTextPosition(GLFontText processedText, GLFontTextPosition position)
         {
             float maxMeasuredWidth = 0f;
 
-            float xPos = 0f;
-            float yPos = 0f;
-
-            float xOffset = xPos;
-            float yOffset = yPos;
+			float xOffset = 0f;
+			float yOffset = 0f;
 
             int character = 0;
 
@@ -162,7 +146,7 @@ namespace GLGUI
                 {
                     newLine = true;
                     if (character == position.Index)
-                        return new TextPosition() { Index = character, Position = new Vector2(xOffset + length, yOffset) };
+						return new GLFontTextPosition() { Index = character, Position = new Vector2(xOffset + length, yOffset) };
                     character++;
                 }
                 else
@@ -171,7 +155,7 @@ namespace GLGUI
                     {
                         newLine = true;
                         if (character == position.Index)
-                            return new TextPosition() { Index = character, Position = new Vector2(xOffset + length, yOffset) };
+							return new GLFontTextPosition() { Index = character, Position = new Vector2(xOffset + length, yOffset) };
                         character++;
                     }
                     else if (length + node.ModifiedLength <= maxWidth || !atLeastOneNodeCosumedOnLine)
@@ -180,7 +164,7 @@ namespace GLGUI
 
                         Vector2 p;
                         if (GetWordPosition(xOffset + length, yOffset, node, position, ref character, out p))
-                            return new TextPosition() { Index = character, Position = p };
+							return new GLFontTextPosition() { Index = character, Position = p };
 
                         length += node.ModifiedLength;
 
@@ -198,14 +182,14 @@ namespace GLGUI
 
                 if (newLine)
                 {
-                    if (yOffset + lineSpacingCache - yPos >= processedText.maxSize.Height)
+                    if (yOffset + lineSpacingCache >= processedText.maxSize.Height)
                         break;
 
                     if ((long)(yOffset / lineSpacingCache) == (long)(position.Position.Y / lineSpacingCache))
-                        return new TextPosition() { Index = character - 1, Position = new Vector2(xOffset + length, yOffset) };
+						return new GLFontTextPosition() { Index = character - 1, Position = new Vector2(xOffset + length, yOffset) };
 
                     yOffset += lineSpacingCache;
-                    xOffset = xPos;
+					xOffset = 0f;
                     length = 0f;
                     atLeastOneNodeCosumedOnLine = false;
 
@@ -221,10 +205,10 @@ namespace GLGUI
                 }
             }
 
-            return new TextPosition() { Index = character, Position = new Vector2(xOffset + length, yOffset) };
+			return new GLFontTextPosition() { Index = character, Position = new Vector2(xOffset + length, yOffset) };
         }
 
-        private bool GetWordPosition(float x, float y, GLFontTextNode node, TextPosition position, ref int character, out Vector2 p)
+		private bool GetWordPosition(float x, float y, GLFontTextNode node, GLFontTextPosition position, ref int character, out Vector2 p)
         {
             bool sameLine = (long)(y / lineSpacingCache) == (long)(position.Position.Y / lineSpacingCache);
 
@@ -263,7 +247,7 @@ namespace GLGUI
                     if (isMonospacingActiveCache)
                         x += monoSpaceWidthCache;
                     else
-                        x += (int)Math.Ceiling(glyph.rect.Width + fontData.meanGlyphWidth * Options.CharacterSpacing + fontData.GetKerningPairCorrection(i, node.Text, node));
+                        x += (int)Math.Ceiling(glyph.Rect.Width + fontData.meanGlyphWidth * Options.CharacterSpacing + fontData.GetKerningPairCorrection(i, node.Text, node));
 
                     x += pixelsPerGap;
                     if (leftOverPixels > 0)
@@ -294,11 +278,8 @@ namespace GLGUI
             // init values we'll return
             float maxMeasuredWidth = 0f;
 
-            float xPos = 0f;
-            float yPos = 0f;
-
-            float xOffset = xPos;
-            float yOffset = yPos;
+			float xOffset = 0f;
+			float yOffset = 0f;
 
             lineSpacingCache = LineSpacing;
             isMonospacingActiveCache = IsMonospacingActive;
@@ -354,11 +335,11 @@ namespace GLGUI
 
                 if (newLine)
                 {
-                    if (yOffset + lineSpacingCache - yPos >= processedText.maxSize.Height)
+                    if (yOffset + lineSpacingCache >= processedText.maxSize.Height)
                         break;
 
                     yOffset += lineSpacingCache;
-                    xOffset = xPos;
+					xOffset = 0f;
                     length = 0f;
                     atLeastOneNodeCosumedOnLine = false;
 
@@ -374,7 +355,7 @@ namespace GLGUI
                 }
             }
 
-            return new SizeF(maxMeasuredWidth, yOffset + lineSpacingCache - yPos);
+            return new SizeF(maxMeasuredWidth, yOffset + lineSpacingCache);
         }
 
         private void RenderWord(GLFontVertexBuffer[] vbos, float x, float y, GLFontTextNode node)
@@ -402,13 +383,13 @@ namespace GLGUI
                 GLFontGlyph glyph;
                 if(fontData.CharSetMapping.TryGetValue(c, out glyph))
                 {
-                    vbos[glyph.page].AddQuad(x, y + glyph.yOffset, x + glyph.rect.Width, y + glyph.yOffset + glyph.rect.Height,
-                        glyph.textureMin.X, glyph.textureMin.Y, glyph.textureMax.X, glyph.textureMax.Y);
+                    vbos[glyph.Page].AddQuad(x, y + glyph.YOffset, x + glyph.Rect.Width, y + glyph.YOffset + glyph.Rect.Height,
+                        glyph.TextureMin.X, glyph.TextureMin.Y, glyph.TextureMax.X, glyph.TextureMax.Y);
 
                     if (isMonospacingActiveCache)
                         x += monoSpaceWidthCache;
                     else
-                        x += (int)Math.Ceiling(glyph.rect.Width + fontData.meanGlyphWidth * Options.CharacterSpacing + fontData.GetKerningPairCorrection(i, node.Text, node));
+                        x += (int)Math.Ceiling(glyph.Rect.Width + fontData.meanGlyphWidth * Options.CharacterSpacing + fontData.GetKerningPairCorrection(i, node.Text, node));
 
                     x += pixelsPerGap;
                     if (leftOverPixels > 0)

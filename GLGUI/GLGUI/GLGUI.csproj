@@ -15,20 +15,20 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
+    <DefineConstants>DEBUG;REFERENCE_WINDOWS_FORMS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>..\bin</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>REFERENCE_WINDOWS_FORMS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -53,7 +53,6 @@
     <Compile Include="GLFont\GLFontRenderOptions.cs" />
     <Compile Include="GLFont\GLFontVertexBuffer.cs" />
     <Compile Include="GLFont\GLFontTextNodeList.cs" />
-    <Compile Include="GLFont\GLFontTexturePage.cs" />
     <Compile Include="GLForm.cs" />
     <Compile Include="GLControl.cs" />
     <Compile Include="GLGui.cs" />
@@ -68,11 +67,28 @@
     <Compile Include="GLSlider.cs" />
     <Compile Include="GLSplitLayout.cs" />
     <Compile Include="GLLinkLabel.cs" />
-    <Compile Include="Advanced\DataControl.cs" />
+    <Compile Include="Advanced\GLDataControl.cs" />
     <Compile Include="GLContextMenu.cs" />
+    <Compile Include="GLCursor.cs" />
+    <Compile Include="GLFont\GLFontKerningConfiguration.cs" />
+    <Compile Include="GLFont\GLFontCharacterKerningRule.cs" />
+    <Compile Include="GLFont\GLFontRenderHint.cs" />
+    <Compile Include="GLFont\GLFontAlignment.cs" />
+    <Compile Include="GLFont\GLFontMonospacing.cs" />
+    <Compile Include="GLFont\GLFontTextNodeType.cs" />
+    <Compile Include="GLFont\GLFontTextNode.cs" />
+    <Compile Include="GLFont\GLFontText.cs" />
+    <Compile Include="GLFont\GLFontTexture.cs" />
+    <Compile Include="GLContextMenuEntry.cs" />
+    <Compile Include="GLAnchorStyles.cs" />
+    <Compile Include="GLFlowDirection.cs" />
+    <Compile Include="Clipboard.cs" />
+    <Compile Include="GLScrolledControl.cs" />
+    <Compile Include="GLPadding.cs" />
+    <Compile Include="GLSliderOrientation.cs" />
+    <Compile Include="GLSplitterOrientation.cs" />
+    <Compile Include="GLFont\GLFontTextPosition.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup>
-    <Folder Include="Advanced\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

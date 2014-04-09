@@ -1,10 +1,7 @@
 using System;
-using System.Linq;
-using OpenTK.Graphics.OpenGL;
-using System.Windows.Forms;
 using System.Drawing;
-using GLGUI;
-using OpenTK;
+using System.Linq;
+using OpenTK.Input;
 
 namespace GLGUI
 {
@@ -25,12 +22,13 @@ namespace GLGUI
 		private Point mouseOffset;
 		private SizeF titleSize;
 		private int minHeight;
+		private DateTime lastClick;
 
-		private static Cursor[] dragOpCursors = new Cursor[]
+		private static GLCursor[] dragOpCursors = new GLCursor[]
 		{
-			Cursors.SizeAll,
-			Cursors.SizeNWSE, Cursors.SizeNS, Cursors.SizeNESW, Cursors.SizeWE,
-			Cursors.SizeNWSE, Cursors.SizeNS, Cursors.SizeNESW, Cursors.SizeWE
+			GLCursor.SizeAll,
+			GLCursor.SizeNWSE, GLCursor.SizeNS, GLCursor.SizeNESW, GLCursor.SizeWE,
+			GLCursor.SizeNWSE, GLCursor.SizeNS, GLCursor.SizeNESW, GLCursor.SizeWE
 		};
 
 		public GLForm(GLGui gui) : base(gui)
@@ -40,7 +38,7 @@ namespace GLGUI
 			MouseUp += OnMouseUp;
 			MouseMove += OnMouseMove;
 			MouseLeave += OnMouseLeave;
-            MouseDoubleClick += OnMouseDoubleClick;
+			//MouseDoubleClick += OnMouseDoubleClick;
 			Focus += (s, e) => Invalidate();
             FocusLost += (s, e) => Invalidate();
 
@@ -91,67 +89,70 @@ namespace GLGUI
             moveClickRegion = new Rectangle(skin.Border.Left, skin.Border.Top, Inner.Width, (int)titleSize.Height);
 		}
 
-		private void OnRender(Rectangle scissorRect, double timeDelta)
+		private void OnRender(double timeDelta)
 		{
-			GLDraw.FilledRectangle(outer.Size, skin.BorderColor);
-			GLDraw.FilledRectangle(Inner, skin.BackgroundColor);
-			Scissor(scissorRect, moveClickRegion);
-            skin.Font.Print(titleProcessed, new Vector2(moveClickRegion.Left, moveClickRegion.Top), skin.Color);
+			GLDraw.Fill(ref skin.BorderColor);
+			GLDraw.FillRect(Inner, ref skin.BackgroundColor);
+            GLDraw.Text(titleProcessed, ref moveClickRegion, ref skin.Color);
 		}
 
-		private void StartDragOperation(DragOperation op, MouseEventArgs e)
+		private void StartDragOperation(DragOperation op, Point p)
 		{
             if ((AutoSize || maximized) && op != DragOperation.Move)
 				return;
 
-			mouseOffset = e.Location;
+			mouseOffset = p;
 			isDragged = true;
 			dragOp = op;
-			Gui.Parent.Cursor = dragOpCursors[(int)op];
+			Gui.Cursor = dragOpCursors[(int)op];
 		}
 
-		private void OnMouseDown(object sender, MouseEventArgs e)
+		private void OnMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+			if (e.Button == MouseButton.Left)
 			{
-				if (moveClickRegion.Contains(e.Location))
-					StartDragOperation (DragOperation.Move, e);
+				if (moveClickRegion.Contains(e.Position))
+					StartDragOperation (DragOperation.Move, e.Position);
 				else if(e.X < skin.Border.Left)
 				{
 					if (e.Y < skin.Border.Top)
-						StartDragOperation (DragOperation.ResizeNW, e);
+						StartDragOperation (DragOperation.ResizeNW, e.Position);
 					else if (e.Y >= outer.Height - skin.Border.Bottom)
-						StartDragOperation (DragOperation.ResizeSW, e);
+						StartDragOperation (DragOperation.ResizeSW, e.Position);
 					else
-						StartDragOperation (DragOperation.ResizeW, e);
+						StartDragOperation (DragOperation.ResizeW, e.Position);
 				}
 				else if (e.X >= outer.Width - skin.Border.Right)
 				{
 					if (e.Y < skin.Border.Top)
-						StartDragOperation (DragOperation.ResizeNE, e);
+						StartDragOperation (DragOperation.ResizeNE, e.Position);
 					else if (e.Y >= outer.Height - skin.Border.Bottom)
-						StartDragOperation (DragOperation.ResizeSE, e);
+						StartDragOperation (DragOperation.ResizeSE, e.Position);
 					else
-						StartDragOperation (DragOperation.ResizeE, e);
+						StartDragOperation (DragOperation.ResizeE, e.Position);
 				}
 				else if (e.Y < skin.Border.Top)
-					StartDragOperation (DragOperation.ResizeN, e);
+					StartDragOperation (DragOperation.ResizeN, e.Position);
 				else if (e.Y >= outer.Height - skin.Border.Bottom)
-					StartDragOperation (DragOperation.ResizeS, e);
+					StartDragOperation (DragOperation.ResizeS, e.Position);
 			}
 
             justDoubleClicked = false;
 		}
 
-		private void OnMouseUp(object sender, MouseEventArgs e)
+		private void OnMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+			if (e.Button == MouseButton.Left)
 			{
 				if (isDragged)
 				{
 					isDragged = false;
-					Gui.Parent.Cursor = Cursors.Default;
+					Gui.Cursor = GLCursor.Default;
 				}
+				var now = DateTime.Now;
+				if ((now - lastClick).TotalMilliseconds < 500.0)
+					OnMouseDoubleClick(this, e);
+				lastClick = now;
 			}
 		}
 
@@ -159,7 +160,7 @@ namespace GLGUI
 		{
 			if (isDragged)
 			{
-				Point p = e.Location;
+				Point p = e.Position;
 				if (Parent != null)
 				{
 					p.X = Math.Min(Math.Max(p.X + outer.X, 0), Parent.Inner.Width) - outer.X;
@@ -225,37 +226,37 @@ namespace GLGUI
 				if (e.X < skin.Border.Left)
 				{
 					if (e.Y < skin.Border.Top)
-						Gui.Parent.Cursor = Cursors.SizeNWSE;
+						Gui.Cursor = GLCursor.SizeNWSE;
 					else if (e.Y >= outer.Height - skin.Border.Bottom)
-						Gui.Parent.Cursor = Cursors.SizeNESW;
+						Gui.Cursor = GLCursor.SizeNESW;
 					else
-						Gui.Parent.Cursor = Cursors.SizeWE;
+						Gui.Cursor = GLCursor.SizeWE;
 				}
 				else if (e.X >= Outer.Width - skin.Border.Right)
 				{
 					if (e.Y < skin.Border.Top)
-						Gui.Parent.Cursor = Cursors.SizeNESW;
+						Gui.Cursor = GLCursor.SizeNESW;
 					else if (e.Y >= outer.Height - skin.Border.Bottom)
-						Gui.Parent.Cursor = Cursors.SizeNWSE;
+						Gui.Cursor = GLCursor.SizeNWSE;
 					else
-						Gui.Parent.Cursor = Cursors.SizeWE;
+						Gui.Cursor = GLCursor.SizeWE;
 				}
 				else if (e.Y < skin.Border.Top || e.Y >= outer.Height - skin.Border.Bottom)
-					Gui.Parent.Cursor = Cursors.SizeNS;
+					Gui.Cursor = GLCursor.SizeNS;
 				else
-					Gui.Parent.Cursor = Cursors.Default;
+					Gui.Cursor = GLCursor.Default;
 			}
 		}
 
 		private void OnMouseLeave(object sender, EventArgs e)
 		{
-			Gui.Parent.Cursor = Cursors.Default;
+			Gui.Cursor = GLCursor.Default;
 		}
 
         private bool justDoubleClicked = false;
         private bool maximized = false;
         private Rectangle restoreOuter;
-        private AnchorStyles restoreAnchor;
+        private GLAnchorStyles restoreAnchor;
         private void Maximize(bool maximize)
         {
             if (maximized == maximize)
@@ -273,17 +274,17 @@ namespace GLGUI
                 restoreOuter = outer;
                 restoreAnchor = anchor;
                 outer = Parent.Inner;
-                anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
+                anchor = GLAnchorStyles.Left | GLAnchorStyles.Top | GLAnchorStyles.Right | GLAnchorStyles.Bottom;
                 Invalidate();
             }
         }
 
         private void OnMouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (!AutoSize && Parent != null && moveClickRegion.Contains(e.Location))
+			if (!AutoSize && Parent != null && moveClickRegion.Contains(e.Position))
                 Maximize(!maximized);
 
-            Gui.Parent.Cursor = Cursors.Default; // hack to avoid move operation cursor
+			Gui.Cursor = GLCursor.Default; // hack to avoid move operation cursor
             justDoubleClicked = true;
         }
 	}

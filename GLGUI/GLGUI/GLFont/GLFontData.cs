@@ -49,7 +49,7 @@ namespace GLGUI
         {
             meanGlyphWidth = 0f;
             foreach (var glyph in CharSetMapping)
-                meanGlyphWidth += glyph.Value.rect.Width;
+                meanGlyphWidth += glyph.Value.Rect.Width;
             meanGlyphWidth /= CharSetMapping.Count;
         }
 
@@ -57,7 +57,7 @@ namespace GLGUI
         {
             maxGlyphHeight = 0;
             foreach (var glyph in CharSetMapping)
-                maxGlyphHeight = Math.Max(glyph.Value.rect.Height, maxGlyphHeight);
+                maxGlyphHeight = Math.Max(glyph.Value.Rect.Height, maxGlyphHeight);
         }
 
         /// <summary>
@@ -96,12 +96,6 @@ namespace GLGUI
                 return KerningPairs[str];
 
             return 0;
-        }
-
-        public void Dispose()
-        {
-            foreach (var page in Pages)
-                page.Dispose();
         }
     }
 }

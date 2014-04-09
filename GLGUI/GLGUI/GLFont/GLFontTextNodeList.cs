@@ -1,47 +1,9 @@
 ﻿using System;
 using System.Collections;
-using System.Drawing;
 using System.Text;
-using OpenTK;
 
 namespace GLGUI
 {
-    enum GLFontTextNodeType { Word, LineBreak, Space, Tab }
-
-    class GLFontTextNode
-    {
-        public GLFontTextNodeType Type;
-        public string Text;
-        public float Length; //pixel length (without tweaks)
-        public float LengthTweak; //length tweak for justification
-
-        public float ModifiedLength
-        {
-            get { return Length + LengthTweak; }
-        }
-
-        public GLFontTextNode(GLFontTextNodeType Type, string Text)
-        {
-            this.Type = Type;
-            this.Text = Text;
-        }
-
-        public GLFontTextNode Next;
-        public GLFontTextNode Previous;
-    }
-
-    /// <summary>
-    /// Class to hide GLFontTextNodeList and related classes from 
-    /// user whilst allowing a textNodeList to be passed around.
-    /// </summary>
-    public class GLFontText
-    {
-        internal GLFontTextNodeList textNodeList;
-        internal SizeF maxSize;
-        internal GLFontAlignment alignment;
-        internal GLFontVertexBuffer[] vertexBuffers;
-    }
-
     /// <summary>
     /// A doubly linked list of text nodes
     /// </summary>
@@ -140,7 +102,7 @@ namespace GLGUI
                                 if (monospaced)
                                     node.Length += monospaceWidth;
                                 else
-                                    node.Length += (float)Math.Ceiling(glyph.rect.Width + fontData.meanGlyphWidth * options.CharacterSpacing + fontData.GetKerningPairCorrection(i, node.Text, node));
+                                    node.Length += (float)Math.Ceiling(glyph.Rect.Width + fontData.meanGlyphWidth * options.CharacterSpacing + fontData.GetKerningPairCorrection(i, node.Text, node));
                             }
                         }
                     }
@@ -270,10 +232,6 @@ namespace GLGUI
             public void Reset()
             {
                 currentNode = null;
-            }
-
-            public void Dispose()
-            {
             }
         }
     }

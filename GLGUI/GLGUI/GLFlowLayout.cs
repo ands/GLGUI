@@ -1,16 +1,15 @@
 using System;
-using System.Linq;
 using System.Drawing;
-using System.Windows.Forms;
+using System.Linq;
 
 namespace GLGUI
 {
 	public class GLFlowLayout : GLControl
 	{
-        public FlowDirection FlowDirection { get { return flowDirection; } set { flowDirection = value; Invalidate(); } }
+        public GLFlowDirection FlowDirection { get { return flowDirection; } set { flowDirection = value; Invalidate(); } }
         public GLSkin.GLFlowLayoutSkin Skin { get { return skin; } set { skin = value; Invalidate(); } }
 
-		private FlowDirection flowDirection = FlowDirection.LeftToRight;
+		private GLFlowDirection flowDirection = GLFlowDirection.LeftToRight;
 		private GLSkin.GLFlowLayoutSkin skin;
 		private Rectangle background;
 
@@ -35,7 +34,7 @@ namespace GLGUI
 			int current = 0;
 			switch(FlowDirection)
 			{
-				case FlowDirection.LeftToRight:
+				case GLFlowDirection.LeftToRight:
 					foreach(GLControl control in Controls)
 					{
 						Rectangle o = control.Outer;
@@ -43,7 +42,7 @@ namespace GLGUI
 						current += o.Width + skin.Space;
 					}
 					break;
-				case FlowDirection.RightToLeft:
+				case GLFlowDirection.RightToLeft:
 					current = Inner.Width;
 					foreach(GLControl control in Controls)
 					{
@@ -53,7 +52,7 @@ namespace GLGUI
 						current -= skin.Space;
 					}
 					break;
-				case FlowDirection.TopDown:
+				case GLFlowDirection.TopDown:
 					foreach(GLControl control in Controls)
 					{
 						Rectangle o = control.Outer;
@@ -61,7 +60,7 @@ namespace GLGUI
 						current += o.Height + skin.Space;
 					}
 					break;
-				case FlowDirection.BottomUp:
+				case GLFlowDirection.BottomUp:
 					current = Inner.Height;
 					foreach(GLControl control in Controls)
 					{
@@ -101,14 +100,14 @@ namespace GLGUI
 				background.Left + skin.Padding.Left, background.Top + skin.Padding.Top,
 				background.Width - skin.Padding.Horizontal, background.Height - skin.Padding.Vertical);
 
-            if(flowDirection == FlowDirection.BottomUp || flowDirection == FlowDirection.RightToLeft)
+            if(flowDirection == GLFlowDirection.BottomUp || flowDirection == GLFlowDirection.RightToLeft)
 			    UpdatePositions();
 		}
 
-        private void OnRender(Rectangle scissorRect, double timeDelta)
+        private void OnRender(double timeDelta)
 		{
-			GLDraw.FilledRectangle(outer.Size, skin.BorderColor);
-			GLDraw.FilledRectangle(background, skin.BackgroundColor);
+			GLDraw.Fill(ref skin.BorderColor);
+			GLDraw.FillRect(ref background, ref skin.BackgroundColor);
 		}
 
 		public override T Add<T>(T control)
@@ -127,4 +126,3 @@ namespace GLGUI
 		}
 	}
 }
-

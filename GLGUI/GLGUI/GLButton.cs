@@ -1,9 +1,6 @@
 using System;
-using OpenTK.Graphics.OpenGL;
-using System.Windows.Forms;
 using System.Drawing;
-using GLGUI;
-using OpenTK;
+using OpenTK.Input;
 
 namespace GLGUI
 {
@@ -70,17 +67,16 @@ namespace GLGUI
 				innerWidth, outer.Height - skin.Border.Vertical);
 		}
 
-        private void OnRender(Rectangle scissorRect, double timeDelta)
+        private void OnRender(double timeDelta)
 		{
-			GLDraw.FilledRectangle(outer.Size, skin.BorderColor);
-			GLDraw.FilledRectangle(Inner, skin.BackgroundColor);
-			Scissor(scissorRect, Inner);
-			skin.Font.Print(textProcessed, new Vector2(outer.Width / 2, (outer.Height - textSize.Height) / 2), skin.Color);
+			GLDraw.Fill(ref skin.BorderColor);
+			GLDraw.FillRect(Inner, ref skin.BackgroundColor);
+            GLDraw.Text(textProcessed, Inner, ref skin.Color);
 		}
 
-		private void OnMouseDown(object sender, MouseEventArgs e)
+		private void OnMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+            if (enabled && e.Button == MouseButton.Left)
 			{
 				isDragged = true;
 				down = true;
@@ -88,15 +84,15 @@ namespace GLGUI
 			}
 		}
 
-		private void OnMouseUp(object sender, MouseEventArgs e)
+		private void OnMouseUp(object sender, MouseButtonEventArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+            if (enabled && e.Button == MouseButton.Left)
 			{
 				if (down)
 				{
 					down = false;
 					isDragged = false;
-					if(Click != null && new Rectangle(0, 0, outer.Width, outer.Height).Contains(e.Location))
+					if(Click != null && new Rectangle(0, 0, outer.Width, outer.Height).Contains(e.Position))
 						Click(this, e);
                     Invalidate();
 				}

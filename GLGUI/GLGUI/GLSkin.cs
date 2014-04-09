@@ -1,6 +1,5 @@
-using GLGUI;
-using System.Windows.Forms;
 using System.Drawing;
+using OpenTK.Graphics;
 
 namespace GLGUI
 {
@@ -9,89 +8,81 @@ namespace GLGUI
 		public struct GLFormSkin
 		{
 			public GLFont Font;
-            public Color Color;
-			public Padding Border;
-			public Color BorderColor;
-			public Color BackgroundColor;
+            public Color4 Color;
+			public GLPadding Border;
+			public Color4 BorderColor;
+			public Color4 BackgroundColor;
 		}
 
 		public struct GLButtonSkin
 		{
 			public GLFont Font;
-            public Color Color;
-			public Padding Border;
-			public Color BorderColor;
-			public Color BackgroundColor;
+            public Color4 Color;
+			public GLPadding Border;
+			public Color4 BorderColor;
+			public Color4 BackgroundColor;
 		}
 
 		public struct GLLabelSkin
 		{
 			public GLFont Font;
-            public Color Color;
-            public Padding Padding;
-			public Color BackgroundColor;
-		}
-
-		public struct GLLinkLabelSkin
-		{
-			public GLFont Font;
-			public Color Color;
-			public Padding Padding;
-			public Color BackgroundColor;
+            public Color4 Color;
+            public GLPadding Padding;
+			public Color4 BackgroundColor;
 		}
 
 		public struct GLTextBoxSkin
 		{
 			public GLFont Font;
-            public Color Color;
-			public Padding Border;
-			public Padding Padding;
-			public Color BorderColor;
-			public Color BackgroundColor;
+            public Color4 Color;
+			public GLPadding Border;
+			public GLPadding Padding;
+			public Color4 BorderColor;
+			public Color4 BackgroundColor;
 		}
 
 		public struct GLCheckBoxSkin
 		{
 			public GLFont Font;
-            public Color Color;
-			public Padding Border;
-			public Color BorderColor;
-			public Color BackgroundColor;
+            public Color4 Color;
+			public GLPadding Border;
+			public Color4 BorderColor;
+			public Color4 BackgroundColor;
 		}
 
         public struct GLGroupLayoutSkin
         {
-            public Padding Border;
-            public Color BorderColor;
-            public Color BackgroundColor;
+            public GLPadding Border;
+            public Color4 BorderColor;
+            public Color4 BackgroundColor;
         }
 
 		public struct GLFlowLayoutSkin
 		{
-			public Padding Padding;
-			public Padding Border;
-			public Color BorderColor;
-			public Color BackgroundColor;
+			public GLPadding Padding;
+			public GLPadding Border;
+			public Color4 BorderColor;
+			public Color4 BackgroundColor;
 			public int Space;
 		}
 
 		public struct GLSplitLayoutSkin
 		{
-			public Color BackgroundColor;
+			public Color4 BackgroundColor;
 			public int SplitterSize;
 		}
 
         public struct GLSliderSkin
         {
-            public Color KnobColor;
-            public Color BackgroundColor;
+            public Color4 KnobColor;
+            public Color4 BackgroundColor;
         }
 
         public struct GLScrollableControlSkin
         {
-            public Padding Border;
-            public Color BorderColor;
-            public Color BackgroundColor;
+            public GLPadding Border;
+            public Color4 BorderColor;
+            public Color4 BackgroundColor;
         }
 
 		public GLFormSkin FormActive = new GLFormSkin();
@@ -105,8 +96,8 @@ namespace GLGUI
 		public GLLabelSkin LabelEnabled = new GLLabelSkin();
 		public GLLabelSkin LabelDisabled = new GLLabelSkin();
 
-		public GLLinkLabelSkin LinkLabelEnabled = new GLLinkLabelSkin();
-		public GLLinkLabelSkin LinkLabelDisabled = new GLLinkLabelSkin();
+		public GLLabelSkin LinkLabelEnabled = new GLLabelSkin();
+		public GLLabelSkin LinkLabelDisabled = new GLLabelSkin();
 
 		public GLTextBoxSkin TextBoxEnabled = new GLTextBoxSkin();
 		public GLTextBoxSkin TextBoxActive = new GLTextBoxSkin();
@@ -138,192 +129,189 @@ namespace GLGUI
 		public GLButtonSkin ContextMenuEntryHover = new GLButtonSkin();
 		public GLButtonSkin ContextMenuEntryPressed = new GLButtonSkin();
 
-
-		public GLFont DefaultFont;
-
-		public GLSkin()
+		public GLSkin(GLFont defaultFont = null)
 		{
-			DefaultFont = new GLFont(new Font("Arial", 8.0f));
+			if(defaultFont == null)
+				defaultFont = new GLFont(new Font("Arial", 8.0f));
 
-			FormActive.Font = DefaultFont;
+			FormActive.Font = defaultFont;
 			FormActive.Color = Color.FromArgb(240, 240, 240);
-			FormActive.Border = new Padding(2);
-			FormActive.BorderColor = Color.FromArgb(192, 96, 96, 96);
-			FormActive.BackgroundColor = Color.FromArgb(240, 240, 240);
+			FormActive.Border = new GLPadding(2);
+			FormActive.BorderColor = Color.FromArgb(192, 56, 56, 56);
+			FormActive.BackgroundColor = Color.FromArgb(41, 41, 41);
 
-			FormInactive.Font = DefaultFont;
+			FormInactive.Font = defaultFont;
 			FormInactive.Color = Color.FromArgb(160, 160, 160);
-			FormInactive.Border = new Padding(2);
-            FormInactive.BorderColor = Color.FromArgb(192, 96, 96, 96);
-			FormInactive.BackgroundColor = Color.FromArgb(240, 240, 240);
+			FormInactive.Border = new GLPadding(2);
+			FormInactive.BorderColor = Color.FromArgb(192, 56, 56, 56);
+			FormInactive.BackgroundColor = Color.FromArgb(41, 41, 41);
 
 
-            ButtonEnabled.Font = DefaultFont;
-            ButtonEnabled.Color = Color.FromArgb(240, 240, 240);
-			ButtonEnabled.Border = new Padding(2);
-			ButtonEnabled.BorderColor = Color.FromArgb(96, 96, 96);
+			ButtonEnabled.Font = defaultFont;
+			ButtonEnabled.Color = Color.FromArgb(240, 240, 240);
+			ButtonEnabled.Border = new GLPadding(2);
+			ButtonEnabled.BorderColor = Color.FromArgb(56, 56, 56);
 			ButtonEnabled.BackgroundColor = Color.Transparent;
 
-            ButtonDisabled.Font = DefaultFont;
-            ButtonDisabled.Color = Color.FromArgb(128, 128, 128);
-			ButtonDisabled.Border = new Padding(2);
-			ButtonDisabled.BorderColor = Color.FromArgb(96, 96, 96);
+			ButtonDisabled.Font = defaultFont;
+			ButtonDisabled.Color = Color.FromArgb(128, 128, 128);
+			ButtonDisabled.Border = new GLPadding(2);
+			ButtonDisabled.BorderColor = Color.FromArgb(56, 56, 56);
 			ButtonDisabled.BackgroundColor = Color.Transparent;
 
-            ButtonHover.Font = DefaultFont;
-            ButtonHover.Color = Color.FromArgb(255, 255, 255);
-			ButtonHover.Border = new Padding(2);
-			ButtonHover.BorderColor = Color.FromArgb(128, 128, 128);
+			ButtonHover.Font = defaultFont;
+			ButtonHover.Color = Color.FromArgb(255, 255, 255);
+			ButtonHover.Border = new GLPadding(2);
+			ButtonHover.BorderColor = Color.FromArgb(64, 64, 64);
 			ButtonHover.BackgroundColor = Color.Transparent;
 
-            ButtonPressed.Font = DefaultFont;
-            ButtonPressed.Color = Color.FromArgb(96, 96, 96);
-			ButtonPressed.Border = new Padding(2);
-			ButtonPressed.BorderColor = Color.FromArgb(128, 128, 128);
+			ButtonPressed.Font = defaultFont;
+			ButtonPressed.Color = Color.FromArgb(96, 96, 96);
+			ButtonPressed.Border = new GLPadding(2);
+			ButtonPressed.BorderColor = Color.FromArgb(32, 32, 32);
 			ButtonPressed.BackgroundColor = Color.Transparent;
 
 
-            LabelEnabled.Font = DefaultFont;
-            LabelEnabled.Color = Color.FromArgb(96, 96, 96);
-			LabelEnabled.Padding = new Padding(1, 1, 1, 1);
+			LabelEnabled.Font = defaultFont;
+			LabelEnabled.Color = Color.FromArgb(192, 192, 192);
+			LabelEnabled.Padding = new GLPadding(1, 1, 1, 1);
 			LabelEnabled.BackgroundColor = Color.Transparent;
 
-            LabelDisabled.Font = DefaultFont;
-            LabelDisabled.Color = Color.FromArgb(128, 128, 128);
-			LabelDisabled.Padding = new Padding(1, 1, 1, 1);
+			LabelDisabled.Font = defaultFont;
+			LabelDisabled.Color = Color.FromArgb(128, 128, 128);
+			LabelDisabled.Padding = new GLPadding(1, 1, 1, 1);
 			LabelDisabled.BackgroundColor = Color.Transparent;
 
 
-			LinkLabelEnabled.Font = DefaultFont;
-			LinkLabelEnabled.Color = Color.FromArgb(0, 0, 255);
-			LinkLabelEnabled.Padding = new Padding(1, 1, 1, 1);
+			LinkLabelEnabled.Font = defaultFont;
+			LinkLabelEnabled.Color = Color.FromArgb(128, 128, 255);
+			LinkLabelEnabled.Padding = new GLPadding(1, 1, 1, 1);
 			LinkLabelEnabled.BackgroundColor = Color.Transparent;
 
-			LinkLabelDisabled.Font = DefaultFont;
+			LinkLabelDisabled.Font = defaultFont;
 			LinkLabelDisabled.Color = Color.FromArgb(96, 96, 192);
-			LinkLabelDisabled.Padding = new Padding(1, 1, 1, 1);
+			LinkLabelDisabled.Padding = new GLPadding(1, 1, 1, 1);
 			LinkLabelDisabled.BackgroundColor = Color.Transparent;
 
 
-            TextBoxEnabled.Font = DefaultFont;
-            TextBoxEnabled.Color = Color.FromArgb(96, 96, 96);
-			TextBoxEnabled.Border = new Padding(1);
-			TextBoxEnabled.Padding = new Padding(1, 0, 1, 2);
+			TextBoxEnabled.Font = defaultFont;
+			TextBoxEnabled.Color = Color.FromArgb(192, 192, 192);
+			TextBoxEnabled.Border = new GLPadding(1);
+			TextBoxEnabled.Padding = new GLPadding(1, 0, 1, 2);
 			TextBoxEnabled.BorderColor = Color.FromArgb(96, 96, 96);
-			TextBoxEnabled.BackgroundColor = Color.FromArgb(255, 255, 255);
+			TextBoxEnabled.BackgroundColor = Color.FromArgb(56, 56, 56);
 
-            TextBoxActive.Font = DefaultFont;
-            TextBoxActive.Color = Color.FromArgb(96, 96, 96);
-			TextBoxActive.Border = new Padding(1);
-			TextBoxActive.Padding = new Padding(1, 0, 1, 2);
+			TextBoxActive.Font = defaultFont;
+			TextBoxActive.Color = Color.FromArgb(192, 192, 192);
+			TextBoxActive.Border = new GLPadding(1);
+			TextBoxActive.Padding = new GLPadding(1, 0, 1, 2);
 			TextBoxActive.BorderColor = Color.FromArgb(255, 192, 96);
-			TextBoxActive.BackgroundColor = Color.FromArgb(255, 255, 255);
+			TextBoxActive.BackgroundColor = Color.FromArgb(56, 56, 56);
 
-            TextBoxHover.Font = DefaultFont;
-            TextBoxHover.Color = Color.FromArgb(96, 96, 96);
-			TextBoxHover.Border = new Padding(1);
-			TextBoxHover.Padding = new Padding(1, 0, 1, 2);
+			TextBoxHover.Font = defaultFont;
+			TextBoxHover.Color = Color.FromArgb(192, 192, 192);
+			TextBoxHover.Border = new GLPadding(1);
+			TextBoxHover.Padding = new GLPadding(1, 0, 1, 2);
 			TextBoxHover.BorderColor = Color.FromArgb(128, 128, 128);
-			TextBoxHover.BackgroundColor = Color.FromArgb(255, 255, 255);
+			TextBoxHover.BackgroundColor = Color.FromArgb(56, 56, 56);
 
-            TextBoxDisabled.Font = DefaultFont;
-            TextBoxDisabled.Color = Color.FromArgb(128, 128, 128);
-			TextBoxDisabled.Border = new Padding(1);
-			TextBoxDisabled.Padding = new Padding(1, 0, 1, 2);
+			TextBoxDisabled.Font = defaultFont;
+			TextBoxDisabled.Color = Color.FromArgb(128, 128, 128);
+			TextBoxDisabled.Border = new GLPadding(1);
+			TextBoxDisabled.Padding = new GLPadding(1, 0, 1, 2);
 			TextBoxDisabled.BorderColor = Color.FromArgb(128, 128, 128);
-			TextBoxDisabled.BackgroundColor = Color.FromArgb(192, 192, 192);
+			TextBoxDisabled.BackgroundColor = Color.FromArgb(56, 56, 56);
 
 
-            CheckBoxEnabled.Font = DefaultFont;
-            CheckBoxEnabled.Color = Color.FromArgb(96, 96, 96);
-			CheckBoxEnabled.Border = new Padding(1);
+			CheckBoxEnabled.Font = defaultFont;
+			CheckBoxEnabled.Color = Color.FromArgb(192, 192, 192);
+			CheckBoxEnabled.Border = new GLPadding(1);
 			CheckBoxEnabled.BorderColor = Color.FromArgb(96, 96, 96);
-			CheckBoxEnabled.BackgroundColor = Color.FromArgb(255, 255, 255);
+			CheckBoxEnabled.BackgroundColor = Color.FromArgb(56, 56, 56);
 
-            CheckBoxPressed.Font = DefaultFont;
-            CheckBoxPressed.Color = Color.FromArgb(96, 96, 96);
-			CheckBoxPressed.Border = new Padding(1);
+			CheckBoxPressed.Font = defaultFont;
+			CheckBoxPressed.Color = Color.FromArgb(192, 192, 192);
+			CheckBoxPressed.Border = new GLPadding(1);
 			CheckBoxPressed.BorderColor = Color.FromArgb(255, 192, 96);
-			CheckBoxPressed.BackgroundColor = Color.FromArgb(255, 255, 255);
+			CheckBoxPressed.BackgroundColor = Color.FromArgb(56, 56, 56);
 
-            CheckBoxHover.Font = DefaultFont;
-            CheckBoxHover.Color = Color.FromArgb(96, 96, 96);
-			CheckBoxHover.Border = new Padding(1);
+			CheckBoxHover.Font = defaultFont;
+			CheckBoxHover.Color = Color.FromArgb(192, 192, 192);
+			CheckBoxHover.Border = new GLPadding(1);
 			CheckBoxHover.BorderColor = Color.FromArgb(128, 128, 128);
-			CheckBoxHover.BackgroundColor = Color.FromArgb(255, 255, 255);
+			CheckBoxHover.BackgroundColor = Color.FromArgb(56, 56, 56);
 
-            CheckBoxDisabled.Font = DefaultFont;
-            CheckBoxDisabled.Color = Color.FromArgb(128, 128, 128);
-			CheckBoxDisabled.Border = new Padding(1);
+			CheckBoxDisabled.Font = defaultFont;
+			CheckBoxDisabled.Color = Color.FromArgb(128, 128, 128);
+			CheckBoxDisabled.Border = new GLPadding(1);
 			CheckBoxDisabled.BorderColor = Color.FromArgb(128, 128, 128);
-			CheckBoxDisabled.BackgroundColor = Color.FromArgb(192, 192, 192);
+			CheckBoxDisabled.BackgroundColor = Color.FromArgb(56, 56, 56);
 
 
-			GroupLayout.Border = new Padding(2);
-            GroupLayout.BorderColor = Color.FromArgb(96, 96, 96);
-            GroupLayout.BackgroundColor = Color.FromArgb(240, 240, 240);
+			GroupLayout.Border = new GLPadding(1);
+			GroupLayout.BorderColor = Color.Transparent;//Color.FromArgb(96, 96, 96);
+			GroupLayout.BackgroundColor = Color.Transparent;//Color.FromArgb(240, 240, 240);
 
 
-			FlowLayout.Padding = new Padding(2);
-			FlowLayout.Border = new Padding(0);
+			FlowLayout.Padding = new GLPadding(2);
+			FlowLayout.Border = new GLPadding(0);
 			FlowLayout.BorderColor = Color.Transparent;
 			FlowLayout.BackgroundColor = Color.Transparent;
 			FlowLayout.Space = 2;
 
 
-			SplitLayout.BackgroundColor = Color.FromArgb(192, 192, 192);
-			SplitLayout.SplitterSize = 2;
+			SplitLayout.BackgroundColor = Color.Transparent;//Color.FromArgb(255, 192, 0);
+			SplitLayout.SplitterSize = 1;
 
 
-            SliderEnabled.KnobColor = Color.FromArgb(96, 96, 96);
-            SliderEnabled.BackgroundColor = Color.FromArgb(128, 128, 128);
+			SliderEnabled.KnobColor = Color.FromArgb(80, 80, 80);
+			SliderEnabled.BackgroundColor = Color.FromArgb(28, 28, 28);//Color.FromArgb(56, 56, 56);
 
-            SliderDisabled.KnobColor = Color.Transparent; //Color.FromArgb(96, 96, 96);
-            SliderDisabled.BackgroundColor = Color.FromArgb(128, 128, 128);
+			SliderDisabled.KnobColor = Color.Transparent; //Color.FromArgb(96, 96, 96);
+			SliderDisabled.BackgroundColor = Color.FromArgb(28, 28, 28);//Color.FromArgb(56, 56, 56);
 
-            SliderHover.KnobColor = Color.FromArgb(96, 96, 96);
-            SliderHover.BackgroundColor = Color.FromArgb(144, 144, 144);
+			SliderHover.KnobColor = Color.FromArgb(96, 96, 96);
+			SliderHover.BackgroundColor = Color.FromArgb(32, 32, 32);
 
-            SliderPressed.KnobColor = Color.FromArgb(80, 80, 80);
-            SliderPressed.BackgroundColor = Color.FromArgb(144, 144, 144);
-
-
-			ScrollableControl.Border = new Padding(2);
-            ScrollableControl.BorderColor = Color.FromArgb(96, 96, 96);
-            ScrollableControl.BackgroundColor = Color.FromArgb(240, 240, 240);
+			SliderPressed.KnobColor = Color.FromArgb(80, 80, 80);
+			SliderPressed.BackgroundColor = Color.FromArgb(32, 32, 32);
 
 
-			ContextMenu.Padding = new Padding(1);
-			ContextMenu.Border = new Padding(1);
-			ContextMenu.BorderColor = Color.FromArgb(96, 96, 96);
-			ContextMenu.BackgroundColor = Color.FromArgb(240, 240, 240);
+			ScrollableControl.Border = new GLPadding(1);
+			ScrollableControl.BorderColor = Color.FromArgb(56, 56, 56);
+			ScrollableControl.BackgroundColor = Color.FromArgb(41, 41, 41);
+
+
+			ContextMenu.Padding = new GLPadding(1);
+			ContextMenu.Border = new GLPadding(1);
+			ContextMenu.BorderColor = Color.FromArgb(56, 56, 56);
+			ContextMenu.BackgroundColor = Color.FromArgb(41, 41, 41);
 			ContextMenu.Space = 1;
 
 
-			ContextMenuEntryEnabled.Font = DefaultFont;
+			ContextMenuEntryEnabled.Font = defaultFont;
 			ContextMenuEntryEnabled.Color = Color.FromArgb(240, 240, 240);
-			ContextMenuEntryEnabled.Border = new Padding(3);
-			ContextMenuEntryEnabled.BorderColor = Color.FromArgb(96, 96, 96);
+			ContextMenuEntryEnabled.Border = new GLPadding(2);
+			ContextMenuEntryEnabled.BorderColor = Color.FromArgb(56, 56, 56);
 			ContextMenuEntryEnabled.BackgroundColor = Color.Transparent;
 
-			ContextMenuEntryDisabled.Font = DefaultFont;
+			ContextMenuEntryDisabled.Font = defaultFont;
 			ContextMenuEntryDisabled.Color = Color.FromArgb(128, 128, 128);
-			ContextMenuEntryDisabled.Border = new Padding(3);
-			ContextMenuEntryDisabled.BorderColor = Color.FromArgb(96, 96, 96);
+			ContextMenuEntryDisabled.Border = new GLPadding(2);
+			ContextMenuEntryDisabled.BorderColor = Color.FromArgb(56, 56, 56);
 			ContextMenuEntryDisabled.BackgroundColor = Color.Transparent;
 
-			ContextMenuEntryHover.Font = DefaultFont;
+			ContextMenuEntryHover.Font = defaultFont;
 			ContextMenuEntryHover.Color = Color.FromArgb(255, 255, 255);
-			ContextMenuEntryHover.Border = new Padding(3);
-			ContextMenuEntryHover.BorderColor = Color.FromArgb(128, 128, 128);
+			ContextMenuEntryHover.Border = new GLPadding(2);
+			ContextMenuEntryHover.BorderColor = Color.FromArgb(64, 64, 64);
 			ContextMenuEntryHover.BackgroundColor = Color.Transparent;
 
-			ContextMenuEntryPressed.Font = DefaultFont;
+			ContextMenuEntryPressed.Font = defaultFont;
 			ContextMenuEntryPressed.Color = Color.FromArgb(96, 96, 96);
-			ContextMenuEntryPressed.Border = new Padding(3);
-			ContextMenuEntryPressed.BorderColor = Color.FromArgb(128, 128, 128);
+			ContextMenuEntryPressed.Border = new GLPadding(2);
+			ContextMenuEntryPressed.BorderColor = Color.FromArgb(32, 32, 32);
 			ContextMenuEntryPressed.BackgroundColor = Color.Transparent;
 		}
 	}
 }
-
