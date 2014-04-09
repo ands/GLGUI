@@ -8,5 +8,6 @@ TODO
 ====
 
   - Clean up example code
-  - Text marking
-  - Get rid of last bits of OpenGL 1.x code (glMatrix*)
+  - Add comments
+  - Implement text marking
+  - Get rid of last OpenGL 1.x code bits (glMatrix*)
