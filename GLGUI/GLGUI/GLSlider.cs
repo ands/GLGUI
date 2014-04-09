@@ -74,7 +74,7 @@ namespace GLGUI
 				Inner = new Rectangle(0, (int)((outer.Height - 8) * value), 8, 8);
 		}
 
-        private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
 		{
 			GLDraw.Fill(ref skin.BackgroundColor);
             GLDraw.FillRect(Inner, ref skin.KnobColor);

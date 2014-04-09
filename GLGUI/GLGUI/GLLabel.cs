@@ -54,7 +54,7 @@ namespace GLGUI
 			Inner = new Rectangle(skin.Padding.Left, skin.Padding.Top, outer.Width - skin.Padding.Horizontal, outer.Height - skin.Padding.Vertical);
 		}
 
-        private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
 		{
             GLDraw.Fill(ref skin.BackgroundColor);
             GLDraw.Text(textProcessed, Inner, ref skin.Color);

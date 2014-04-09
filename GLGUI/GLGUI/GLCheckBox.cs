@@ -74,7 +74,7 @@ namespace GLGUI
 				innerWidth, outer.Height - skin.Border.Vertical);
 		}
 
-        private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
 		{
 			GLDraw.FillRect(ref outerBox, ref skin.BorderColor);
 			GLDraw.FillRect(ref innerBox, ref skin.BackgroundColor);

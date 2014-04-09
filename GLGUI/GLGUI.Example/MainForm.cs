@@ -106,15 +106,14 @@ namespace GLGUI.Example
                 //var c = b.Add(new GLScrollableControl(glgui) { Outer = new Rectangle(0, 0, b.Inner.Width, b.Inner.Height), ContentSize = new Size(400, 200), Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom });
                 var d = b.Add(new GLViewport(glgui) { Size = b.InnerSize, Anchor = GLAnchorStyles.Left | GLAnchorStyles.Top | GLAnchorStyles.Right | GLAnchorStyles.Bottom });
                 double t = 0.0f;
-                d.Render += (vp, delta) =>
+                d.RenderViewport += (vp, delta) =>
                 {
                     GL.Enable(EnableCap.DepthTest);
                     GL.ClearColor(0, 0, 0, 1);
                     GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                     GL.MatrixMode(MatrixMode.Projection);
-                    GL.LoadIdentity();
-                    var proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90.0f), vp.AspectRatio, 1.0f, 100.0f);
+                    var proj = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90.0f), d.AspectRatio, 1.0f, 100.0f);
                     GL.LoadMatrix(ref proj);
                     GL.MatrixMode(MatrixMode.Modelview);
                     GL.LoadIdentity();

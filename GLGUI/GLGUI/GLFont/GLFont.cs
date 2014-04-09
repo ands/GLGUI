@@ -46,6 +46,7 @@ namespace GLGUI
             {
                 fontData = new GLFontBuilder(font, config).BuildFontData();
             }
+            pfc.Dispose();
         }
 
         private Vector2 LockToPixel(Vector2 input)

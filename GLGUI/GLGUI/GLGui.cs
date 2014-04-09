@@ -27,7 +27,6 @@ namespace GLGUI
 		private double renderDuration;
 		private int suspendCounter = 0;
 		private GLCursor cursor;
-		//private bool mouseInside = true;
 
 		public GLGui(GameWindow parent) : base(null)
 		{
@@ -37,14 +36,14 @@ namespace GLGUI
 			base.Parent = this;
 			Parent = parent;
 			Outer = parent.ClientRectangle;
-			Anchor = GLAnchorStyles.Left | GLAnchorStyles.Top | GLAnchorStyles.Right | GLAnchorStyles.Bottom;
+			Anchor = GLAnchorStyles.All;
 
 			parent.Mouse.Move += (s, e) => DoMouseMove(e);
 			parent.Mouse.ButtonDown += OnMouseDown;
 			parent.Mouse.ButtonUp += OnMouseUp;
 			parent.Mouse.WheelChanged += (s, e) => DoMouseWheel(e);
-			parent.MouseEnter += (s, e) => DoMouseEnter(); // these seem to be broken on windows
-			parent.MouseLeave += (s, e) => DoMouseLeave(); // (mouse click + move fires leave + enter events)
+			parent.MouseEnter += (s, e) => DoMouseEnter();
+			parent.MouseLeave += (s, e) => DoMouseLeave();
 			parent.KeyDown += (s, e) => DoKeyDown(e);
 			parent.KeyUp += (s, e) => DoKeyUp(e);
 			parent.KeyPress += (s, e) => DoKeyPress(e);
@@ -108,24 +107,6 @@ namespace GLGUI
             GL.PopMatrix();
             GL.MatrixMode(MatrixMode.Modelview);
             GL.PopMatrix();
-
-            // MouseEnter and MouseLeave workarounds
-			/*if (Parent.Bounds.Contains(System.Windows.Forms.Cursor.Position))
-            {
-                if (!mouseInside)
-                {
-                    DoMouseEnter();
-                    mouseInside = true;
-                }
-            }
-            else
-            {
-                if (mouseInside)
-                {
-                    DoMouseLeave();
-                    mouseInside = false;
-                }
-            }*/
 
 			lock(toDispose)
 			{

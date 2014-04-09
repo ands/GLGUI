@@ -59,7 +59,7 @@ namespace GLGUI
 		}
 
         private Rectangle splitterRect;
-		private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
 		{
             GLDraw.FillRect(ref splitterRect, ref skin.BackgroundColor);
 		}

@@ -34,6 +34,7 @@ namespace GLGUI
 			{
 				Bitmap bmp = new Bitmap(1, 1);
 				Handle = bmp.GetHicon();
+                bmp.Dispose();
 			}
 		}
 
@@ -91,6 +92,7 @@ namespace GLGUI
 				}
 			}
 			bmp.UnlockBits(data);
+            bmp.Dispose();
 		}
 		#endif
 
@@ -120,7 +122,7 @@ namespace GLGUI
 
 		[SuppressUnmanagedCodeSecurity]
 		[DllImport("SDL2.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "SDL_CreateCursor", ExactSpelling = true)]
-		public static extern IntPtr CreateCursor(IntPtr data, IntPtr mask, int w, int h, int hot_x, int hot_y);
+		private static extern IntPtr CreateCursor(IntPtr data, IntPtr mask, int w, int h, int hot_x, int hot_y);
 	}
 }
 

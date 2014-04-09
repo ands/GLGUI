@@ -36,9 +36,9 @@ namespace GLGUI
         public int InnerWidth { get { return inner.Width; } }
         public int InnerHeight { get { return inner.Height; } }
 
-        public delegate void RenderEventHandler(double timeDelta);
-		public delegate bool KeyEventHandler(object source, KeyboardKeyEventArgs eventArgs);
-		public delegate bool KeyPressEventHandler(object source, KeyPressEventArgs eventArgs);
+        public delegate void RenderEventHandler(object sender, double timeDelta);
+		public delegate bool KeyEventHandler(object sender, KeyboardKeyEventArgs e);
+		public delegate bool KeyPressEventHandler(object sender, KeyPressEventArgs e);
 
 		public event RenderEventHandler Render;
 		public event EventHandler<MouseMoveEventArgs> MouseMove;
@@ -212,7 +212,7 @@ namespace GLGUI
                 GLDraw.ControlRect = new Rectangle(absolutePosition, outer.Size);
                 GLDraw.ScissorRect.Intersect(GLDraw.ControlRect);
                 if (GLDraw.ScissorRect.Width != 0 && GLDraw.ScissorRect.Height != 0)
-                    Render(timeDelta);
+                    Render(this, timeDelta);
 			}
 
             if (controls.Count > 0)

@@ -88,7 +88,7 @@
     <Compile Include="GLSliderOrientation.cs" />
     <Compile Include="GLSplitterOrientation.cs" />
     <Compile Include="GLFont\GLFontTextPosition.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
-  <ItemGroup />
 </Project>

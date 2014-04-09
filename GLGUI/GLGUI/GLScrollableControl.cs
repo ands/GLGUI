@@ -85,7 +85,7 @@ namespace GLGUI
             }
 		}
 
-        private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
         {
             GLDraw.Fill(ref skin.BorderColor);
             GLDraw.FillRect(Inner, ref skin.BackgroundColor);

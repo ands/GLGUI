@@ -90,7 +90,7 @@ namespace GLGUI
 
         private double caretBlinkTimer = 0.0;
         private const double caretBlinkInterval = 0.7;
-        private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
 		{
             caretBlinkTimer += timeDelta;
 

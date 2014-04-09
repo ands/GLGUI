@@ -42,7 +42,7 @@ namespace GLGUI
             Inner = new Rectangle(skin.Border.Left, skin.Border.Top, outer.Width - skin.Border.Horizontal, outer.Height - skin.Border.Vertical);
 		}
 
-        private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
         {
             GLDraw.Fill(ref skin.BorderColor);
             GLDraw.FillRect(Inner, ref skin.BackgroundColor);

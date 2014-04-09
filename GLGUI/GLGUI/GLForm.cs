@@ -89,7 +89,7 @@ namespace GLGUI
             moveClickRegion = new Rectangle(skin.Border.Left, skin.Border.Top, Inner.Width, (int)titleSize.Height);
 		}
 
-		private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
 		{
 			GLDraw.Fill(ref skin.BorderColor);
 			GLDraw.FillRect(Inner, ref skin.BackgroundColor);

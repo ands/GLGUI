@@ -104,7 +104,7 @@ namespace GLGUI
 			    UpdatePositions();
 		}
 
-        private void OnRender(double timeDelta)
+        private void OnRender(object sender, double timeDelta)
 		{
 			GLDraw.Fill(ref skin.BorderColor);
 			GLDraw.FillRect(ref background, ref skin.BackgroundColor);

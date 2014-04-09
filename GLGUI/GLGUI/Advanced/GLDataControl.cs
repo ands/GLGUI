@@ -24,7 +24,7 @@ namespace GLGUI.Advanced
 
         public GLDataControl(GLGui gui) : base(gui)
         {
-            Render += d => UpdateData();
+            Render += (s, d) => UpdateData();
 
             horizontal = Add(new GLFlowLayout(gui) { FlowDirection = GLFlowDirection.LeftToRight, AutoSize = true });
             left = horizontal.Add(new GLFlowLayout(gui) { FlowDirection = GLFlowDirection.TopDown, AutoSize = true });
