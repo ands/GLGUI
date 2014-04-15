@@ -57,9 +57,9 @@ namespace GLGUI.Example
 
             var flow = helloWorldForm.Add(new GLFlowLayout(glgui) { FlowDirection = GLFlowDirection.BottomUp, Location = new Point(10, 10), Size = helloWorldForm.InnerSize, AutoSize = true });
             for (int i = 0; i < 5; i++)
-                flow.Add(new GLButton(glgui) { Text = "Button" + i, Outer = new Rectangle(10, 32, 150, 0) })
+                flow.Add(new GLButton(glgui) { Text = "Button" + i, Size = new Size(150, 0) })
                     .Click += (s, w) => Console.WriteLine(s + " pressed.");
-			flow.Add(new GLButton(glgui) { Text = "Hide Cursor", Outer = new Rectangle(10, 32, 150, 0) })
+			flow.Add(new GLButton(glgui) { Text = "Hide Cursor", Size = new Size(150, 0) })
                 .Click += (s, w) => glgui.Cursor = GLCursor.None;
 
             var loremIpsumForm = mainAreaControl.Add(new GLForm(glgui) { Title = "Lorem Ipsum", Location = new Point(600, 100), Size = new Size(300, 200) });
@@ -113,7 +113,7 @@ namespace GLGUI.Example
 			fpsCounter++;
 		}
 
-        // draws simple colored cube in a GLViewport control
+        // draws a simple colored cube in a GLViewport control
         private void OnRenderViewport(object sender, double deltaTime)
         {
             var viewport = (GLViewport)sender;

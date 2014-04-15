@@ -260,7 +260,7 @@ namespace GLGUI
 			FlowLayout.Space = 2;
 
 
-			SplitLayout.BackgroundColor = Color.Transparent;//Color.FromArgb(255, 192, 0);
+			SplitLayout.BackgroundColor = Color.FromArgb(0, 0, 0);
 			SplitLayout.SplitterSize = 1;
 
 
