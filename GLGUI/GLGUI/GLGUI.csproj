@@ -15,7 +15,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\bin</OutputPath>
-    <DefineConstants>DEBUG;REFERENCE_WINDOWS_FORMS</DefineConstants>
+    <DefineConstants>DEBUG;REFERENCE_WINDOWS_FORMS; REFERENCE_OPENTK_GLCONTROL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
@@ -28,9 +28,13 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DefineConstants>REFERENCE_WINDOWS_FORMS</DefineConstants>
+    <DefineConstants>REFERENCE_WINDOWS_FORMS; REFERENCE_OPENTK_GLCONTROL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\bin\OpenTK.GLControl.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="OpenTK">
       <HintPath>..\bin\OpenTK.dll</HintPath>

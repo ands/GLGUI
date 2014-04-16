@@ -12,11 +12,14 @@ namespace GLGUI
 		public static GLCursor Default, SizeAll, SizeNWSE, SizeNS, SizeNESW, SizeWE, IBeam, Hand, None;
 
 		internal readonly IntPtr Handle;
+#if REFERENCE_WINDOWS_FORMS
+        internal readonly System.Windows.Forms.Cursor Cursor;
+#endif
 
-		private static bool loaded = false;
+        private static bool loaded = false;
 		private static bool usingSdl2 = false;
 
-		#if REFERENCE_WINDOWS_FORMS
+#if REFERENCE_WINDOWS_FORMS
 		private GLCursor()
 		{
 			if (usingSdl2)
@@ -35,6 +38,7 @@ namespace GLGUI
 				Bitmap bmp = new Bitmap(1, 1);
 				Handle = bmp.GetHicon();
                 bmp.Dispose();
+                Cursor = new System.Windows.Forms.Cursor(Handle);
 			}
 		}
 
@@ -43,6 +47,7 @@ namespace GLGUI
 			if (!usingSdl2)
 			{
 				Handle = cursor.Handle;
+                Cursor = cursor;
 				return;
 			}
 
@@ -94,16 +99,19 @@ namespace GLGUI
 			bmp.UnlockBits(data);
             bmp.Dispose();
 		}
-		#endif
+#endif
 
 		internal static void LoadCursors(NativeWindow window)
 		{
 			if (loaded)
 				return;
 
-			string infoType = window.WindowInfo.GetType().Name;
-			if (infoType == "Sdl2WindowInfo")
-				usingSdl2 = true;
+            if (window != null)
+            {
+                string infoType = window.WindowInfo.GetType().Name;
+                if (infoType == "Sdl2WindowInfo")
+                    usingSdl2 = true;
+            }
 
 			#if REFERENCE_WINDOWS_FORMS
 			Default = new GLCursor(System.Windows.Forms.Cursors.Default, false);
