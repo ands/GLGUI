@@ -96,6 +96,11 @@ namespace GLGUI
             return content.Add(control);
         }
 
+        public override void Clear()
+        {
+            content.Clear();
+        }
+
         public override void Remove(GLControl control)
         {
             content.Remove(control);

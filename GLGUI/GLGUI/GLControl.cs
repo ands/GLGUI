@@ -23,6 +23,7 @@ namespace GLGUI
         public GLAnchorStyles Anchor { get { return anchor; } set { anchor = value; Invalidate(); } }
         public bool AutoSize { get { return autoSize; } set { autoSize = value; Invalidate(); } }
 		public virtual GLContextMenu ContextMenu { get { return contextMenu; } set { contextMenu = value; } }
+        public bool HandleMouseEvents { get { return handleMouseEvents; } set { handleMouseEvents = value; } }
 
         // derived from above properties:
         public Point Location { get { return outer.Location; } set { Outer = new Rectangle(value, outer.Size); } }
@@ -66,6 +67,7 @@ namespace GLGUI
 		private static int idCounter = 0;
         private bool visited = false;
 		private GLContextMenu contextMenu;
+        private bool handleMouseEvents = true;
 
 		private GLControl hoverChild;
 		private GLControl focusedChild;
@@ -234,10 +236,10 @@ namespace GLGUI
             }
 		}
 
-		internal void DoMouseMove(MouseMoveEventArgs e)
+		internal bool DoMouseMove(MouseMoveEventArgs e)
 		{
 			if (Parent == null)
-				return;
+				return false;
 
 			if (!isDragged)
 			{
@@ -246,7 +248,7 @@ namespace GLGUI
 				if (hoverChild != null && hoverChild.IsDragged)
 				{
 					hoverChild.DoMouseMove(new MouseMoveEventArgs(im.X - hoverChild.Outer.X, im.Y - hoverChild.Outer.Y, e.XDelta, e.YDelta));
-					return;
+					return true;
 				}
 
 				if(inner.Contains(e.Position))
@@ -255,15 +257,17 @@ namespace GLGUI
 					{
 						if (control.Outer.Contains(im))
 						{
-							if (hoverChild != control)
+							if (control.DoMouseMove(new MouseMoveEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.XDelta, e.YDelta)))
 							{
-								if (hoverChild != null)
-									hoverChild.DoMouseLeave();
-								hoverChild = control;
-								hoverChild.DoMouseEnter();
+								if (hoverChild != control)
+								{
+									if (hoverChild != null)
+										hoverChild.DoMouseLeave();
+									hoverChild = control;
+									hoverChild.DoMouseEnter();
+								}
+								return true;
 							}
-							control.DoMouseMove(new MouseMoveEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.XDelta, e.YDelta));
-							return;
 						}
 					}
 				}
@@ -276,13 +280,21 @@ namespace GLGUI
 			}
 
 			if (MouseMove != null)
+			{
 				MouseMove(this, e);
+				return true;
+			}
+
+			if (MouseEnter != null || MouseLeave != null) // force correct MouseEnter/Leave handling
+				return true;
+
+			return handleMouseEvents;
 		}
 
-		internal void DoMouseDown(MouseButtonEventArgs e)
+		internal bool DoMouseDown(MouseButtonEventArgs e)
 		{
 			if (Parent == null)
-				return;
+				return false;
 
 			if (!isDragged)
 			{
@@ -302,20 +314,23 @@ namespace GLGUI
 					{
 						if (control.Outer.Contains(im))
 						{
-							if (control != focusedChild)
-							{
-								if (focusedChild != null)
-									focusedChild.DoFocusLost();
-								focusedChild = control;
-							}
-							control.DoMouseDown(new MouseButtonEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.Button, e.IsPressed));
+							bool handled = control.DoMouseDown(new MouseButtonEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.Button, e.IsPressed));
 							if (control is GLForm)
 							{
 								GLControl tmp = controls[i]; // move to front
 								controls.RemoveAt(i);
 								controls.Insert(0, tmp);
 							}
-							return;
+								if (handled)
+								{
+									if (control != focusedChild)
+									{
+										if (focusedChild != null)
+											focusedChild.DoFocusLost();
+										focusedChild = control;
+									}
+									return true;
+								}
 						}
 						i++;
 					}
@@ -323,16 +338,20 @@ namespace GLGUI
 			}
 
 			if (MouseDown != null)
+			{
 				MouseDown(this, e);
+				if (e.Button == MouseButton.Right && contextMenu != null)
+					Gui.OpenContextMenu(contextMenu, ToViewport(e.Position));
+				return true;
+			}
 
-			if (e.Button == MouseButton.Right && contextMenu != null)
-				Gui.OpenContextMenu(contextMenu, ToViewport(e.Position));
+			return handleMouseEvents;
 		}
 
-		internal void DoMouseUp(MouseButtonEventArgs e)
+		internal bool DoMouseUp(MouseButtonEventArgs e)
 		{
 			if (Parent == null)
-				return;
+				return false;
 
 			if (!isDragged)
 			{
@@ -341,7 +360,7 @@ namespace GLGUI
 				if (hoverChild != null && hoverChild.IsDragged)
 				{
 					hoverChild.DoMouseUp(new MouseButtonEventArgs(im.X - hoverChild.Outer.X, im.Y - hoverChild.Outer.Y, e.Button, e.IsPressed));
-					return;
+					return true;
 				}
 
 				if (inner.Contains(e.Position))
@@ -350,15 +369,20 @@ namespace GLGUI
 					{
 						if (control.Outer.Contains(im))
 						{
-							control.DoMouseUp(new MouseButtonEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.Button, e.IsPressed));
-							return;
+							if(control.DoMouseUp(new MouseButtonEventArgs(im.X - control.Outer.X, im.Y - control.Outer.Y, e.Button, e.IsPressed)))
+								return true;
 						}
 					}
 				}
 			}
 
 			if (MouseUp != null)
+			{
 				MouseUp(this, e);
+				return true;
+			}
+
+			return handleMouseEvents;
 		}
 
 		internal bool DoMouseWheel(MouseWheelEventArgs e)
@@ -383,12 +407,13 @@ namespace GLGUI
 				}
 			}
 
-            if (MouseWheel != null)
-            {
-                MouseWheel(this, e);
-                return true;
-            }
-            return false;
+			if (MouseWheel != null)
+			{
+				MouseWheel(this, e);
+				return true;
+			}
+
+			return handleMouseEvents;
 		}
 
 		internal void DoMouseEnter()

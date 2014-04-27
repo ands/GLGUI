@@ -7,9 +7,16 @@ namespace GLGUI
 {
 	public static class GLDraw
 	{
+        public static Rectangle CurrentScreenRect { get { return ControlRect; } }
+
         internal static GLGui CurrentGui;
         internal static Rectangle ControlRect;
         internal static Rectangle ScissorRect;
+
+        public static void PrepareCustomDrawing()
+        {
+            GL.Scissor(ScissorRect.X, CurrentGui.Outer.Height - ScissorRect.Bottom, ScissorRect.Width, ScissorRect.Height);
+        }
 
         public static void Fill(ref Color4 color)
         {
