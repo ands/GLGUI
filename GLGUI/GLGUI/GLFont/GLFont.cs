@@ -356,7 +356,7 @@ namespace GLGUI
                 }
             }
 
-            return new SizeF(maxMeasuredWidth, yOffset + lineSpacingCache);
+            return new SizeF(maxMeasuredWidth, yOffset + (nodeList.Head == null ? 0 : lineSpacingCache));
         }
 
         private void RenderWord(GLFontVertexBuffer[] vbos, float x, float y, GLFontTextNode node)

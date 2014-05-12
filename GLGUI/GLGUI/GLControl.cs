@@ -337,15 +337,21 @@ namespace GLGUI
 				}
 			}
 
+            bool handledHere = false;
+
 			if (MouseDown != null)
 			{
 				MouseDown(this, e);
-				if (e.Button == MouseButton.Right && contextMenu != null)
-					Gui.OpenContextMenu(contextMenu, ToViewport(e.Position));
-				return true;
+                handledHere = true;
 			}
 
-			return handleMouseEvents;
+            if (contextMenu != null && e.Button == MouseButton.Right)
+            {
+                Gui.OpenContextMenu(contextMenu, ToViewport(e.Position));
+                handledHere = true;
+            }
+
+            return handledHere || handleMouseEvents;
 		}
 
 		internal bool DoMouseUp(MouseButtonEventArgs e)

@@ -11,6 +11,7 @@ namespace GLGUI
         public GLScrolledControl(GLGui gui) : base(gui)
 		{
             AutoSize = true;
+            HandleMouseEvents = false;
         }
 
         protected override void UpdateLayout()

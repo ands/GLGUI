@@ -9,6 +9,7 @@ namespace GLGUI
 	{
         public GLSlider Horizontal { get { return horizontal; } }
         public GLSlider Vertical { get { return vertical; } }
+        public Point ScrollPosition { get { return scrollPosition; } }
         public GLSkin.GLScrollableControlSkin Skin { get { return skin; } set { skin = value; Invalidate(); } }
 		public override GLContextMenu ContextMenu { get { return base.ContextMenu; } set { base.ContextMenu = value; content.ContextMenu = value; } }
 
@@ -76,8 +77,8 @@ namespace GLGUI
                 scrollPosition = new Point((int)(horizontal.Value * scrollFreedom.Width), (int)(vertical.Value * scrollFreedom.Height));
 				horizontal.Outer = new Rectangle(0, Inner.Height - horizontal.Height, Inner.Width - (vertical.Enabled ? vertical.Width : 0), horizontal.Height);
 				vertical.Outer = new Rectangle(Inner.Width - vertical.Width, 0, vertical.Width, Inner.Height - (horizontal.Enabled ? horizontal.Height : 0));
-				horizontal.MouseWheelStep = 4.0f / scrollFreedom.Width;
-				vertical.MouseWheelStep = 4.0f / scrollFreedom.Height;
+				horizontal.MouseWheelStep = 1.0f / scrollFreedom.Width;
+				vertical.MouseWheelStep = 1.0f / scrollFreedom.Height;
 
                 content.Outer = new Rectangle(-scrollPosition.X, -scrollPosition.Y,
 					Inner.Width - (vertical.Enabled ? vertical.Width : 0) + scrollPosition.X,

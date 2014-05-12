@@ -14,6 +14,9 @@ namespace GLGUI
         public GLSkin.GLLabelSkin SkinEnabled { get { return skinEnabled; } set { skinEnabled = value; Invalidate(); } }
         public GLSkin.GLLabelSkin SkinDisabled { get { return skinDisabled; } set { skinDisabled = value; Invalidate(); } }
 
+        public bool WordWrap = false;
+        public bool Multiline = false;
+
 		private string text = "";
 		private GLFontText textProcessed = new GLFontText();
 		private SizeF textSize;
@@ -32,15 +35,16 @@ namespace GLGUI
 			sizeMin = new Size(1, (int)skinEnabled.Font.LineSpacing + skinEnabled.Padding.Vertical);
 			sizeMax = new Size(int.MaxValue, int.MaxValue);
 
-			ContextMenu = new GLContextMenu(gui);
-			ContextMenu.Add(new GLContextMenuEntry(gui) { Text = "Copy" }).Click += (s, e) => Clipboard.SetText(text);
+            HandleMouseEvents = false;
 		}
 
         protected override void UpdateLayout()
 		{
 			skin = Enabled ? skinEnabled : skinDisabled;
 
-            textSize = skin.Font.ProcessText(textProcessed, text, GLFontAlignment.Left);
+            textSize = skin.Font.ProcessText(textProcessed, text,
+                new SizeF(WordWrap ? (AutoSize ? SizeMax.Width - skin.Padding.Horizontal : outer.Width - skin.Padding.Horizontal) : float.MaxValue, Multiline ? (AutoSize ? float.MaxValue : outer.Height - skin.Padding.Vertical) : skin.Font.LineSpacing),
+                skin.TextAlign);
 
 			if (AutoSize)
 			{

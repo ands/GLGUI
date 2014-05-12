@@ -49,7 +49,7 @@ namespace GLGUI
 			outer.Width = Math.Min(Math.Max(outer.Width, sizeMin.Width), sizeMax.Width);
 
 			int innerWidth = outer.Width - skin.Border.Horizontal;
-            textSize = skin.Font.ProcessText(textProcessed, text, GLFontAlignment.Centre);
+            textSize = skin.Font.ProcessText(textProcessed, text, skin.TextAlign);
 			int minHeight = Math.Max(sizeMin.Height, (int)textSize.Height + skin.Border.Vertical);
 
 			if (AutoSize)

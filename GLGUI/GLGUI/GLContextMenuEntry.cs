@@ -1,5 +1,3 @@
-using System.Drawing;
-
 namespace GLGUI
 {
 	public class GLContextMenuEntry : GLButton
@@ -12,8 +10,6 @@ namespace GLGUI
 			SkinDisabled = Gui.Skin.ContextMenuEntryDisabled;
 
 			Click += (s, e) => Gui.CloseContextMenu();
-
-			SizeMin = new Size(100, 0);
 		}
 	}
 }

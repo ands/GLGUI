@@ -44,6 +44,8 @@ namespace GLGUI
 			outer = outerBox;
 			sizeMin = outerBox.Size;
 			sizeMax = new Size(int.MaxValue, int.MaxValue);
+
+            HandleMouseEvents = false;
 		}
 
         protected override void UpdateLayout()
@@ -86,7 +88,7 @@ namespace GLGUI
 
 		private void OnMouseDown(object sender, MouseButtonEventArgs e)
 		{
-			if (enabled && e.Button == MouseButton.Left && outerBox.Contains(e.Position))
+			if (enabled && e.Button == MouseButton.Left)
 			{
 				isDragged = true;
 				down = true;
@@ -102,12 +104,9 @@ namespace GLGUI
 				{
 					down = false;
 					isDragged = false;
-					if(outerBox.Contains(e.Position))
-					{
-						_checked = !_checked;
-						if(Changed != null)
-							Changed(this, e);
-					}
+					_checked = !_checked;
+					if(Changed != null)
+						Changed(this, e);
                     Invalidate();
 				}
 			}

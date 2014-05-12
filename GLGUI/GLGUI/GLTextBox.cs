@@ -64,8 +64,14 @@ namespace GLGUI
 			outer.Width = Math.Min(Math.Max(outer.Width, sizeMin.Width), sizeMax.Width);
 
             textSize = skin.Font.ProcessText(textProcessed, text,
-				new SizeF(WordWrap ? outer.Width - skin.Border.Horizontal - skin.Padding.Horizontal : float.MaxValue, Multiline ? (AutoSize ? float.MaxValue : outer.Height - skin.Border.Vertical - skin.Padding.Vertical) : skin.Font.LineSpacing),
-				GLFontAlignment.Left);
+				new SizeF(
+                    WordWrap ? 
+                        (AutoSize ? float.MaxValue : outer.Width - skin.Border.Horizontal - skin.Padding.Horizontal)
+                        : SizeMax.Width - skin.Border.Horizontal - skin.Padding.Horizontal,
+                    Multiline ? 
+                        (AutoSize ? float.MaxValue : outer.Height - skin.Border.Vertical - skin.Padding.Vertical)
+                        : skin.Font.LineSpacing),
+                skin.TextAlign);
 			int minHeight = Math.Max(sizeMin.Height, (int)textSize.Height + skin.Border.Vertical + skin.Padding.Vertical);
 
 			if (AutoSize)
