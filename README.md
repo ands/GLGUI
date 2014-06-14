@@ -15,5 +15,4 @@ TODO
 
   - Clean up (example) code
   - Add comments and documentation
-  - Implement text marking
-  - Get rid of last OpenGL 1.x code bits (glMatrix*)
+  - Get rid of last few legacy OpenGL dependencies (e.g. glMatrix*)
