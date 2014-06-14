@@ -42,7 +42,7 @@ namespace GLGUI.Example
             mainAreaControl.Skin = mainSkin;
 
             var consoleScrollControl = glgui.Add(new GLScrollableControl(glgui) { Outer = new Rectangle(0, ClientSize.Height - 200, ClientSize.Width, 200), Anchor = GLAnchorStyles.Left | GLAnchorStyles.Right | GLAnchorStyles.Bottom });
-            console = consoleScrollControl.Add(new GLLabel(glgui) { AutoSize = true });
+            console = consoleScrollControl.Add(new GLLabel(glgui) { AutoSize = true, Multiline = true });
 
             fpsLabel = mainAreaControl.Add(new GLLabel(glgui) { Location = new Point(10, 10), AutoSize = true });
             // change font and background color:

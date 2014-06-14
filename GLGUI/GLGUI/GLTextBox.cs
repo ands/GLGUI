@@ -32,6 +32,7 @@ namespace GLGUI
 		private bool enabled = true;
 		private bool over = false;
 		private Rectangle background;
+        private GLFontTextPosition selectionStart;
 
 		public GLTextBox(GLGui gui) : base(gui)
 		{
@@ -40,6 +41,7 @@ namespace GLGUI
 			MouseUp += OnMouseUp;
 			MouseEnter += OnMouseEnter;
 			MouseLeave += OnMouseLeave;
+            MouseMove += OnMouseMove;
 			Focus += OnFocus;
 			FocusLost += OnFocusLost;
 			KeyDown += OnKeyDown;
@@ -53,7 +55,7 @@ namespace GLGUI
 			outer = new Rectangle(0, 0, 100, 0);
 
 			ContextMenu = new GLContextMenu(gui);
-			ContextMenu.Add(new GLContextMenuEntry(gui) { Text = "Copy" }).Click += (s, e) => Clipboard.SetText(text);
+            ContextMenu.Add(new GLContextMenuEntry(gui) { Text = "Copy" }).Click += (s, e) => { if (selectionStart.Index != cursorPosition.Index) CopySelection(); };
 			ContextMenu.Add(new GLContextMenuEntry(gui) { Text = "Paste" }).Click += (s, e) => { if(Clipboard.ContainsText()) Insert(Clipboard.GetText()); };
 		}
 
@@ -102,7 +104,34 @@ namespace GLGUI
 
 			GLDraw.Fill(ref skin.BorderColor);
 			GLDraw.FillRect(ref background, ref skin.BackgroundColor);
+
+            if (selectionStart.Index != cursorPosition.Index)
+            {
+                var start = selectionStart.Index < cursorPosition.Index ? selectionStart : cursorPosition;
+                var end = selectionStart.Index < cursorPosition.Index ? cursorPosition : selectionStart;
+                if (Math.Abs(selectionStart.Position.Y - cursorPosition.Position.Y) < 0.0001f)
+                {
+                    GLDraw.FillRect(
+                        new Rectangle(
+                            Inner.X + (int)start.Position.X,
+                            Inner.Y + (int)start.Position.Y,
+                            (int)(end.Position.X - start.Position.X),
+                            (int)skin.Font.LineSpacing),
+                        ref skin.SelectionColor);
+                }
+                else
+                {
+                    int y = Inner.Y + (int)start.Position.Y;
+                    int ymax = Inner.Y + (int)end.Position.Y;
+                    GLDraw.FillRect(new Rectangle(Inner.X + (int)start.Position.X, y, Inner.Width - (int)start.Position.X, (int)skin.Font.LineSpacing), ref skin.SelectionColor);
+                    y += (int)skin.Font.LineSpacing;
+                    GLDraw.FillRect(new Rectangle(Inner.X, y, InnerWidth, ymax - y), ref skin.SelectionColor);
+                    GLDraw.FillRect(new Rectangle(Inner.X, ymax, (int)end.Position.X, (int)skin.Font.LineSpacing), ref skin.SelectionColor);
+                }
+            }
+
             GLDraw.Text(textProcessed, Inner, ref skin.Color);
+
 			if (enabled)
 			{
 				if (HasFocus && caretBlinkTimer < caretBlinkInterval)
@@ -124,6 +153,7 @@ namespace GLGUI
                 cursorPosition.Index = int.MaxValue;
 				cursorPosition.Position = new Vector2(e.X - Inner.X, e.Y - Inner.Y);
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                selectionStart = cursorPosition;
 			}
 		}
 
@@ -152,6 +182,16 @@ namespace GLGUI
             Invalidate();
 		}
 
+        private void OnMouseMove(object sender, MouseMoveEventArgs e)
+        {
+            if (isDragged)
+            {
+                cursorPosition.Index = int.MaxValue;
+                cursorPosition.Position = new Vector2(e.X - Inner.X, e.Y - Inner.Y);
+                cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+            }
+        }
+
 		private void OnFocus(object sender, EventArgs e)
 		{
 			Invalidate();
@@ -178,16 +218,29 @@ namespace GLGUI
 		{
 			if (!enabled)
 				return false;
-			if (e.Key == Key.Delete && cursorPosition.Index < text.Length)
+			if (e.Key == Key.Delete)
 			{
-                text = text.Remove(cursorPosition.Index, 1);
+                if (selectionStart.Index != cursorPosition.Index)
+                    RemoveSelection();
+                else if (cursorPosition.Index < text.Length)
+                    text = text.Remove(cursorPosition.Index, 1);
+                else
+                    return true;
                 Invalidate();
                 if (Changed != null) Changed(this, e);
 				return true;
 			}
-			if (e.Key == Key.BackSpace && cursorPosition.Index > 0)
+			if (e.Key == Key.BackSpace)
 			{
-				text = text.Remove(--cursorPosition.Index, 1);
+                if (selectionStart.Index != cursorPosition.Index)
+                    RemoveSelection();
+                else if (cursorPosition.Index > 0)
+                {
+                    text = text.Remove(--cursorPosition.Index, 1);
+                    selectionStart = cursorPosition;
+                }
+                else
+                    return true;
 				Invalidate();
 				if (Changed != null) Changed(this, e);
 				return true;
@@ -202,6 +255,7 @@ namespace GLGUI
                 cursorPosition.Index--;
                 cursorPosition.Position = new Vector2(float.MaxValue, float.MaxValue);
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                selectionStart = cursorPosition;
 				return true;
 			}
             if (e.Key == Key.Right && cursorPosition.Index < text.Length)
@@ -209,6 +263,7 @@ namespace GLGUI
                 cursorPosition.Index++;
                 cursorPosition.Position = new Vector2(float.MaxValue, float.MaxValue);
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                selectionStart = cursorPosition;
 				return true;
 			}
             if (e.Key == Key.Up && cursorPosition.Position.Y > 0.0f)
@@ -216,6 +271,7 @@ namespace GLGUI
                 cursorPosition.Index = int.MaxValue;
                 cursorPosition.Position.Y -= skin.Font.LineSpacing;
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                selectionStart = cursorPosition;
 				return true;
             }
             if (e.Key == Key.Down)
@@ -223,11 +279,24 @@ namespace GLGUI
                 cursorPosition.Index = int.MaxValue;
                 cursorPosition.Position.Y += skin.Font.LineSpacing;
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                selectionStart = cursorPosition;
 				return true;
+            }
+            if (e.Control && e.Key == Key.X)
+            {
+                if (selectionStart.Index != cursorPosition.Index)
+                {
+                    CopySelection();
+                    RemoveSelection();
+                    Invalidate();
+                    if (Changed != null) Changed(this, e);
+                }
+                return true;
             }
 			if (e.Control && e.Key == Key.C)
 			{
-				Clipboard.SetText(text);
+                if (selectionStart.Index != cursorPosition.Index)
+                    CopySelection();
 				return true;
 			}
 			if (e.Control && e.Key == Key.V)
@@ -244,12 +313,33 @@ namespace GLGUI
 			return false;
 		}
 
+        private void CopySelection()
+        {
+            int first = Math.Min(selectionStart.Index, cursorPosition.Index);
+            int length = Math.Max(selectionStart.Index, cursorPosition.Index) - first;
+            Clipboard.SetText(text.Substring(first, length));
+        }
+
+        private void RemoveSelection()
+        {
+            int first = Math.Min(selectionStart.Index, cursorPosition.Index);
+            int length = Math.Max(selectionStart.Index, cursorPosition.Index) - first;
+            text = text.Remove(first, length);
+            cursorPosition.Index = first;
+            selectionStart = cursorPosition;
+        }
+
 		private void Insert(string str)
 		{
+            if (selectionStart.Index != cursorPosition.Index)
+                RemoveSelection();
+
 			text = text.Insert(cursorPosition.Index, str);
 			cursorPosition.Index += str.Length;
+            selectionStart = cursorPosition;
 			Invalidate();
-			if (Changed != null) Changed(this, EventArgs.Empty);
+			if (Changed != null)
+                Changed(this, EventArgs.Empty);
 		}
 	}
 }
