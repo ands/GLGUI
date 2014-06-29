@@ -5,6 +5,7 @@ using OpenTK.Input;
 
 #if REFERENCE_WINDOWS_FORMS
 using Clipboard = System.Windows.Forms.Clipboard;
+using System.Collections.Generic;
 #endif
 
 namespace GLGUI
@@ -33,6 +34,8 @@ namespace GLGUI
 		private bool over = false;
 		private Rectangle background;
         private GLFontTextPosition selectionStart;
+        private Stack<string> history = new Stack<string>();
+        private Stack<string> future = new Stack<string>();
 
 		public GLTextBox(GLGui gui) : base(gui)
 		{
@@ -94,6 +97,8 @@ namespace GLGUI
 
             cursorPosition.Position = new Vector2(float.MaxValue, float.MaxValue);
             cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+            selectionStart.Position = new Vector2(float.MaxValue, float.MaxValue);
+            selectionStart = skin.Font.GetTextPosition(textProcessed, selectionStart);
 		}
 
         private double caretBlinkTimer = 0.0;
@@ -221,9 +226,17 @@ namespace GLGUI
 			if (e.Key == Key.Delete)
 			{
                 if (selectionStart.Index != cursorPosition.Index)
+                {
+                    future.Clear();
+                    history.Push(text);
                     RemoveSelection();
+                }
                 else if (cursorPosition.Index < text.Length)
+                {
+                    future.Clear();
+                    history.Push(text);
                     text = text.Remove(cursorPosition.Index, 1);
+                }
                 else
                     return true;
                 Invalidate();
@@ -233,9 +246,15 @@ namespace GLGUI
 			if (e.Key == Key.BackSpace)
 			{
                 if (selectionStart.Index != cursorPosition.Index)
+                {
+                    future.Clear();
+                    history.Push(text);
                     RemoveSelection();
+                }
                 else if (cursorPosition.Index > 0)
                 {
+                    future.Clear();
+                    history.Push(text);
                     text = text.Remove(--cursorPosition.Index, 1);
                     selectionStart = cursorPosition;
                 }
@@ -255,7 +274,8 @@ namespace GLGUI
                 cursorPosition.Index--;
                 cursorPosition.Position = new Vector2(float.MaxValue, float.MaxValue);
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
-                selectionStart = cursorPosition;
+                if (!e.Shift)
+                    selectionStart = cursorPosition;
 				return true;
 			}
             if (e.Key == Key.Right && cursorPosition.Index < text.Length)
@@ -263,7 +283,8 @@ namespace GLGUI
                 cursorPosition.Index++;
                 cursorPosition.Position = new Vector2(float.MaxValue, float.MaxValue);
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
-                selectionStart = cursorPosition;
+                if (!e.Shift)
+                    selectionStart = cursorPosition;
 				return true;
 			}
             if (e.Key == Key.Up && cursorPosition.Position.Y > 0.0f)
@@ -271,7 +292,8 @@ namespace GLGUI
                 cursorPosition.Index = int.MaxValue;
                 cursorPosition.Position.Y -= skin.Font.LineSpacing;
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
-                selectionStart = cursorPosition;
+                if (!e.Shift)
+                    selectionStart = cursorPosition;
 				return true;
             }
             if (e.Key == Key.Down)
@@ -279,13 +301,26 @@ namespace GLGUI
                 cursorPosition.Index = int.MaxValue;
                 cursorPosition.Position.Y += skin.Font.LineSpacing;
                 cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
-                selectionStart = cursorPosition;
+                if (!e.Shift)
+                    selectionStart = cursorPosition;
 				return true;
+            }
+            if (e.Control && e.Key == Key.A)
+            {
+                selectionStart.Index = 0;
+                selectionStart.Position = new Vector2(float.MaxValue, float.MaxValue);
+                selectionStart = skin.Font.GetTextPosition(textProcessed, selectionStart);
+                cursorPosition.Index = text.Length;
+                cursorPosition.Position = new Vector2(float.MaxValue, float.MaxValue);
+                cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                return true;
             }
             if (e.Control && e.Key == Key.X)
             {
                 if (selectionStart.Index != cursorPosition.Index)
                 {
+                    future.Clear();
+                    history.Push(text);
                     CopySelection();
                     RemoveSelection();
                     Invalidate();
@@ -305,10 +340,50 @@ namespace GLGUI
 					Insert(Clipboard.GetText());
 				return true;
             }
+            if (e.Control && e.Key == Key.Z)
+            {
+                if (!e.Shift)
+                {
+                    if (history.Count > 0)
+                    {
+                        future.Push(text);
+                        text = history.Pop();
+                        Invalidate();
+                    }
+                }
+                else if (future.Count > 0)
+                {
+                    history.Push(text);
+                    text = future.Pop();
+                    Invalidate();
+                }
+                return true;
+            }
             if (e.Key == Key.Tab)
             {
-				Insert("\t");
-				return true;
+                if (selectionStart.Index != cursorPosition.Index)
+                    Indent(e.Shift);
+                else
+                    Insert("\t");
+                return true;
+            }
+            if (e.Key == Key.Home)
+            {
+                cursorPosition.Index = int.MaxValue;
+                cursorPosition.Position.X = 0;
+                cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                if (!e.Shift)
+                    selectionStart = cursorPosition;
+                return true;
+            }
+            if (e.Key == Key.End)
+            {
+                cursorPosition.Index = int.MaxValue;
+                cursorPosition.Position.X = float.MaxValue;
+                cursorPosition = skin.Font.GetTextPosition(textProcessed, cursorPosition);
+                if (!e.Shift)
+                    selectionStart = cursorPosition;
+                return true;
             }
 			return false;
 		}
@@ -331,6 +406,9 @@ namespace GLGUI
 
 		private void Insert(string str)
 		{
+            future.Clear();
+            history.Push(text);
+
             if (selectionStart.Index != cursorPosition.Index)
                 RemoveSelection();
 
@@ -341,6 +419,60 @@ namespace GLGUI
 			if (Changed != null)
                 Changed(this, EventArgs.Empty);
 		}
+
+        private void Indent(bool unindent)
+        {
+            future.Clear();
+            history.Push(text);
+            int first = Math.Min(selectionStart.Index, cursorPosition.Index);
+            int last = Math.Max(selectionStart.Index, cursorPosition.Index);
+            for (int i = first - 1; i < last; i++)
+            {
+                if (i == first - 1 || text[i] == '\n')
+                {
+                    if (!unindent)
+                    {
+                        // indent
+                        text = text.Insert(i + 1, "\t");
+                        last++;
+                    }
+                    else if (text.Length > i + 1)
+                    {
+                        // unindent
+                        if (text[i + 1] == '\t')
+                        {
+                            text = text.Remove(i + 1, 1);
+                            last--;
+                        }
+                        else
+                        {
+                            for (int j = 0; j < 4 && text.Length > i + 1; j++)
+                            {
+                                if (text[i + 1] == ' ')
+                                {
+                                    text = text.Remove(i + 1, 1);
+                                    last--;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (last != cursorPosition.Index && last != selectionStart.Index)
+            {
+                // fix selection bounds
+                if (cursorPosition.Index == first)
+                    selectionStart.Index = last;
+                else
+                    cursorPosition.Index = last;
+
+                Invalidate();
+                if (Changed != null)
+                    Changed(this, EventArgs.Empty);
+            }
+            else
+                history.Pop();
+        }
 	}
 }
 

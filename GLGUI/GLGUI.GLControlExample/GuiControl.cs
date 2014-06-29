@@ -196,6 +196,7 @@ namespace GLGUI.GLControlExample
                 case Keys.Right:
                 case Keys.Left:
                 case Keys.Tab:
+                case (Keys.Shift | Keys.Tab):
                     return true;
             }
             return base.IsInputKey(key);
