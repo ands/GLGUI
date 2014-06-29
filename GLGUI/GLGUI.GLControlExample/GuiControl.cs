@@ -189,17 +189,7 @@ namespace GLGUI.GLControlExample
 
         protected override bool IsInputKey(Keys key)
         {
-            switch (key)
-            {
-                case Keys.Up:
-                case Keys.Down:
-                case Keys.Right:
-                case Keys.Left:
-                case Keys.Tab:
-                case (Keys.Shift | Keys.Tab):
-                    return true;
-            }
-            return base.IsInputKey(key);
+            return true;
         }
 	}
 }
