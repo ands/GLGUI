@@ -10,11 +10,13 @@ namespace GLGUI
         public GLSlider Horizontal { get { return horizontal; } }
         public GLSlider Vertical { get { return vertical; } }
         public Point ScrollPosition { get { return scrollPosition; } }
+        public Size ScrollFreedom { get { return scrollFreedom; } }
         public GLSkin.GLScrollableControlSkin Skin { get { return skin; } set { skin = value; Invalidate(); } }
 		public override GLContextMenu ContextMenu { get { return base.ContextMenu; } set { base.ContextMenu = value; content.ContextMenu = value; } }
 
         private GLSkin.GLScrollableControlSkin skin;
 		private Point scrollPosition;
+        private Size scrollFreedom;
         private GLScrolledControl content;
         private GLSlider horizontal, vertical;
 
@@ -54,9 +56,10 @@ namespace GLGUI
 			outer.Height = Math.Min(Math.Max(outer.Height, sizeMin.Height), sizeMax.Height);
             Inner = new Rectangle(skin.Border.Left, skin.Border.Top, outer.Width - skin.Border.Horizontal, outer.Height - skin.Border.Vertical);
 
+            scrollFreedom = new Size(0, 0);
             if (content != null)
             {
-                var scrollFreedom = new Size(
+                scrollFreedom = new Size(
                     Math.Max(content.TotalSize.Width - (Inner.Width - vertical.Outer.Width), 0),
                     Math.Max(content.TotalSize.Height - (Inner.Height - horizontal.Outer.Height), 0));
 
