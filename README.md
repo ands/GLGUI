@@ -1,7 +1,9 @@
 GLGUI
 =====
 
-This OpenGL User Interface library is a fast WinForms-like object oriented GUI based on a custom OpenTK version which allows custom cursors (https://github.com/ands/opentk) and some QuickFont font generator code.
+![GLGUI Example](http://andsz.de/i/GLGUI.png)
+
+This OpenGL User Interface library is a WinForms-like object oriented GUI based on a custom OpenTK version which allows custom cursors (https://github.com/ands/opentk) and some QuickFont font generator code.
 Both GameWindows and GLControls, which use different input EventArgs, are supported.
 
 You can build the GLGUI assembly with or without System.Windows.Forms (=> with or without cursor support) by using the REFERENCE_WINDOWS_FORMS build flag.
@@ -14,5 +16,5 @@ TODO
 ====
 
   - Clean up (example) code
-  - Add comments and documentation
-  - Get rid of last few legacy OpenGL dependencies (e.g. glMatrix*)
+  - Add documentation
+  - Get rid of last few legacy OpenGL dependencies
